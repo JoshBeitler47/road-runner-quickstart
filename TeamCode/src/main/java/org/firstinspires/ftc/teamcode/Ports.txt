@@ -1,10 +1,8 @@
 Main Hub
-Port 0 - rightback_drive (par0)
-Port 1 - leftback_drive (par1)
+Port 0 - leftback_drive (par0)
+Port 1 - rightback_drive
 Port 2 - rightfront_drive (perp)
-Port 3 - leftfront_drive
-1 to 0
-3 to 1
+Port 3 - leftfront_drive (par1)
 
 Servo port 0 - elbow_servo
 Servo port 1 - claw_servo
