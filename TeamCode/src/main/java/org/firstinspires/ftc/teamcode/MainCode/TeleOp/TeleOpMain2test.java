@@ -1,107 +1,77 @@
 package org.firstinspires.ftc.teamcode.MainCode.TeleOp;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import com.acmerobotics.dashboard.FtcDashboard;
+
 
 /*Buttons
 Left and right sticks to drive (Robot is field centric)
 options button to reset gyro
-left bumper to toggle forward intake grabber, right bumper to toggle backwards
+left trigger to run intake grabber, right trigger to run backwards
 a to initiate transfer
 b to reset transfer
  */
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="MainTeleOp", group="Linear Opmode")
-@Config
-public class TeleOpMain extends LinearOpMode
+@TeleOp(name="MainTeleOpTest", group="Linear Opmode")
+public class TeleOpMain2test extends LinearOpMode
 {
     //Variables ____________________________________________________________________________________
     DcMotorEx intake_elbow, outtake_elbow, hang_arm;
     DcMotor front_left, back_left, front_right, back_right, intake_grabber;
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
-    public static double intakeServoStart = .857;
-    public static double outtakeServoDrop = .4;
-    public static double intakeServoTransfer = .95;
-    public static double outtakeServoTransfer = .245;
-    public static int intakeMotorTransfer = -112;
-    public static int outtakeMotorTransfer = 0;
-    public static int intakeMotorStart;
-
-    public static double power = .5;
-    public static boolean intakeToggleL = false;
-    public static boolean intakeToggleR = false;
+    double intakeServoStart;
+    double outtakeServoDrop = .4;
+    double intakeServoTransfer = .2;
+    double outtakeServoTransfer = .2;
+    int intakeMotorTransfer = -125;
+    int outtakeMotorTransfer = 200;
+    int intakeMotorStart;
+    double power = .5;
     IMU imu;
+    //private Gamepad lastGamepad;
     private ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void runOpMode() throws InterruptedException //START HERE
     {
-        Gamepad currentGamepad1 = new Gamepad();
-        Gamepad previousGamepad1 = new Gamepad();
-
         HardwareSetupMotors();
         HardwareSetupServos();
         ImuSetup();
-        right_intake.setPosition(intakeServoStart);
+
         waitForStart();
 
         if (isStopRequested()) return;
 
         while (opModeIsActive())
         {
-            previousGamepad1.copy(currentGamepad1);
-            currentGamepad1.copy(gamepad1);
+            //intake_grabber.setPower(gamepad1.left_trigger);
+            //intake_grabber.setPower(-gamepad1.right_trigger);
 
-            MoveRobot();
 
-            RunOuttakeElbow();
-
+            int pos = intake_elbow.getCurrentPosition();
+            telemetry.addData("pos", pos);
+            telemetry.update();
             RunIntakeGrabber();
-
-            if (currentGamepad1.a && !previousGamepad1.a)
+            if (gamepad1.a/* && !lastGamepad.a*/)
             {
+                //lastGamepad.copy(gamepad1);
                 InitiateTransfer();
             }
-            else if (currentGamepad1.b && !previousGamepad1.b)
+            if (gamepad1.b/* && !lastGamepad.b*/)
             {
+                //lastGamepad.copy(gamepad1);
                 ResetTransfer();
             }
 
-            if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper)
-            {
-                intakeToggleL = !intakeToggleL;
-            }
-            if (intakeToggleL)
-            {
-                intake_grabber.setPower(.75);
-            }
-            else
-            {
-                intake_grabber.setPower(0);
-            }
 
-            if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper)
-            {
-                intakeToggleR = !intakeToggleR;
-            }
-            if (intakeToggleR)
-            {
-                intake_grabber.setPower(-.75);
-            }
-            else
-            {
-                intake_grabber.setPower(0);
-            }
+            //lastGamepad.copy(gamepad1);
         }
     }
 
@@ -126,7 +96,8 @@ public class TeleOpMain extends LinearOpMode
 
         front_right.setDirection(DcMotor.Direction.REVERSE);
         back_right.setDirection(DcMotor.Direction.REVERSE);
-        outtake_elbow.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        intakeMotorStart = intake_elbow.getCurrentPosition();
     }
     private void HardwareSetupServos()
     {
@@ -134,6 +105,8 @@ public class TeleOpMain extends LinearOpMode
         right_intake = hardwareMap.get(Servo.class,"right_intake");
         outtake_wrist = hardwareMap.get(Servo.class,"outtake_wrist");
         drone_launcher = hardwareMap.get(Servo.class,"drone_launcher");
+
+        intakeServoStart = left_intake.getPosition();
     }
     private void MotorInit(DcMotorEx motor)
     {
@@ -187,46 +160,33 @@ public class TeleOpMain extends LinearOpMode
         front_right.setPower(frontRightPower);
         back_right.setPower(backRightPower);
     }
-    public void RunIntakeGrabber()
+    private void RunIntakeGrabber()
     {
-        if (gamepad1.left_trigger > (gamepad1.right_trigger+0.5))
-        {
-            intake_grabber.setPower(gamepad1.left_trigger);
-        }
-        else if (gamepad1.right_trigger > (gamepad1.left_trigger + 0.5))
-        {
-            intake_grabber.setPower(-gamepad1.right_trigger);
-        }
-    }
-    private void RunOuttakeElbow()
-    {
-        outtake_elbow.setPower(gamepad1.left_stick_y);
+        intake_grabber.setPower(gamepad1.left_trigger);
+        intake_grabber.setPower(-gamepad1.right_trigger);
     }
     private void InitiateTransfer()
     {
-        outtake_elbow.setTargetPosition(outtakeMotorTransfer);
-        outtake_elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        outtake_elbow.setPower(power);
-        outtake_wrist.setPosition(outtakeServoTransfer);
+        //outtake_elbow.setTargetPosition(outtakeMotorTransfer);
+        //outtake_elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //outtake_elbow.setPower(power);
+        /*outtake_wrist.setPosition(outtakeServoTransfer);
 
         intake_elbow.setTargetPosition(intakeMotorTransfer);
         intake_elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         intake_elbow.setPower(power);
-        left_intake.setPosition(intakeServoTransfer);
-        right_intake.setPosition(intakeServoTransfer);
+        left_intake.setPosition(intakeServoTransfer);*/
+        right_intake.setPosition(0);
     }
     private void ResetTransfer()
     {
-        intake_elbow.setTargetPosition(intake_elbow.getCurrentPosition() + 10);
-        intake_elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        intake_elbow.setPower(0.1);
-
-        right_intake.setPosition(intakeServoStart);
-
+        /*left_intake.setPosition(intakeServoStart);
+        right_intake.setPosition(-intakeServoStart);
         intake_elbow.setTargetPosition(intakeMotorStart);
         intake_elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        intake_elbow.setPower(0.1);
+        intake_elbow.setPower(power);
 
-        outtake_wrist.setPosition(outtakeServoDrop);
+        outtake_wrist.setPosition(outtakeServoDrop);*/
+        right_intake.setPosition(1);
     }
 }

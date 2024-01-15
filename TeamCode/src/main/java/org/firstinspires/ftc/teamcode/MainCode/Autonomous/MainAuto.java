@@ -1,15 +1,18 @@
 package org.firstinspires.ftc.teamcode.MainCode.Autonomous;
 
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
+import org.firstinspires.ftc.teamcode.tuning.MecanumDrive;
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Alliance;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 @Config
 @TeleOp(name="Autonomous", group="Linear Opmode")
+
 
 public final class MainAuto extends LinearOpMode {
     public static Side start = Side.AUDIENCE;
@@ -98,6 +102,26 @@ public final class MainAuto extends LinearOpMode {
         }
         waitForStart();
 
+        visionHandler.init(hardwareMap);
+        waitForStart();
+
+        if(color.equals(Alliance.RED)){
+            visionHandler.setRed();
+        }else{
+            visionHandler.setBlue();
+        }
+        visionHandler.setLeft();
+        double left = visionHandler.read();
+        visionHandler.setMiddle();
+        double mid = visionHandler.read();
+        visionHandler.setRight();
+        double right = visionHandler.read();
+        if(left >= mid && left >= right)
+            lcr = Spike.LEFT;
+        if(mid >= right && mid >= left)
+            lcr = Spike.CENTER;
+        if(right >= left && right >= mid)
+            lcr = Spike.RIGHT;
 
         if (color.equals(Alliance.RED)) {
             reflect = 1;
