@@ -102,26 +102,26 @@ public final class MainAuto extends LinearOpMode {
         }
         waitForStart();
 
-        visionHandler.init(hardwareMap);
-        waitForStart();
-
-        if(color.equals(Alliance.RED)){
-            visionHandler.setRed();
-        }else{
-            visionHandler.setBlue();
-        }
-        visionHandler.setLeft();
-        double left = visionHandler.read();
-        visionHandler.setMiddle();
-        double mid = visionHandler.read();
-        visionHandler.setRight();
-        double right = visionHandler.read();
-        if(left >= mid && left >= right)
-            lcr = Spike.LEFT;
-        if(mid >= right && mid >= left)
-            lcr = Spike.CENTER;
-        if(right >= left && right >= mid)
-            lcr = Spike.RIGHT;
+//        visionHandler.init(hardwareMap);
+//        waitForStart();
+//
+//        if(color.equals(Alliance.RED)){
+//            visionHandler.setRed();
+//        }else{
+//            visionHandler.setBlue();
+//        }
+//        visionHandler.setLeft();
+//        double left = visionHandler.read();
+//        visionHandler.setMiddle();
+//        double mid = visionHandler.read();
+//        visionHandler.setRight();
+//        double right = visionHandler.read();
+//        if(left >= mid && left >= right)
+//            lcr = Spike.LEFT;
+//        if(mid >= right && mid >= left)
+//            lcr = Spike.CENTER;
+//        if(right >= left && right >= mid)
+//            lcr = Spike.RIGHT;
 
         if (color.equals(Alliance.RED)) {
             reflect = 1;

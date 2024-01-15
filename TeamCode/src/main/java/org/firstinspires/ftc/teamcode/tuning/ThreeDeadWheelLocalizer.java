@@ -17,9 +17,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @Config
 public final class ThreeDeadWheelLocalizer implements Localizer {
     public static class Params {
-        public double par0YTicks = 1983.59006402; // y position of the first parallel encoder (in tick units)
-        public double par1YTicks =  -2055.23371428; // y position of the second parallel encoder (in tick units)
-        public double perpXTicks = 1743.4100702; // x position of the perpendicular encoder (in tick units)
+        public double par0YTicks = -1542.5656; // y position of the first parallel encoder (in tick units)
+        public double par1YTicks = 145.40656; // y position of the second parallel encoder (in tick units)
+        public double perpXTicks = -1119.55617; // x position of the perpendicular encoder (in tick units)
     }
 
     public static Params PARAMS = new Params();
