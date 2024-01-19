@@ -46,12 +46,13 @@ public final class MainAuto extends LinearOpMode {
     public static String parkValue = "";
     VisionHandler visionHandler;
 
-
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public void runOpMode() throws InterruptedException {
         Pose2d startingPose;
         Pose2d nextPose;
-        double xOffset = 0;
-        double yOffset = 0;
+        double xOffset = 3;
+        double yOffset = -5;
+        double outtakeOffset = 2;
         MecanumDrive drive;
         int reflect;
         int LCRNUM = 0;
@@ -61,21 +62,21 @@ public final class MainAuto extends LinearOpMode {
 
         while(!isStarted()){
             if (gamepad1.right_bumper){
-                if(color.equals(Alliance.RED)){
+                if(color == Alliance.RED){
                     color = Alliance.BLUE;
                 } else {
                     color = Alliance.RED;
                 }
             }
             if (gamepad1.left_bumper){
-                if(park.equals(Park.CORNER)){
+                if(park == Park.CORNER){
                     park = Park.STAGE;
                 } else {
                     park = Park.CORNER;
                 }
             }
             if (gamepad1.a){
-                if(start.equals(Side.AUDIENCE)){
+                if(start == Side.AUDIENCE){
                     start = Side.BACKSTAGE;
                 } else {
                     start = Side.AUDIENCE;
@@ -86,9 +87,8 @@ public final class MainAuto extends LinearOpMode {
             telemetry.addData("Parking: ", park.name());
             telemetry.update();
         }
-        waitForStart();
-
         visionHandler.init(hardwareMap);
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         waitForStart();
 
         if(color.equals(Alliance.RED)){
@@ -114,6 +114,11 @@ public final class MainAuto extends LinearOpMode {
         } else {
             reflect = -1;
         }
+        xOffset *= reflect;
+        yOffset *= reflect;
+        if(start == Side.BACKSTAGE){
+            xOffset *= -1;
+        }
         switch (lcr){
             case LEFT:
                 LCRNUM = -1*reflect;
@@ -125,7 +130,11 @@ public final class MainAuto extends LinearOpMode {
                 LCRNUM = 1*reflect;
                 break;
         }
-        if (start.equals(Side.BACKSTAGE)){ //BackstageSide
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        setupRobot();
+        glideIntake();
+        if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             startingPose = new Pose2d(12, -64*reflect, Math.toRadians(90*reflect));
             drive = new MecanumDrive(hardwareMap, startingPose);
             switch (LCRNUM) {
@@ -151,8 +160,8 @@ public final class MainAuto extends LinearOpMode {
                                     .build());
                     break;
             }
-        } else { //AudienceSide
-            startingPose = new Pose2d(-36, -64, Math.PI / 2);
+        } else {                                          //AudienceSide
+            startingPose = new Pose2d(-36, -64*reflect, Math.toRadians(90*reflect));
             drive = new MecanumDrive(hardwareMap, startingPose);
             switch (LCRNUM) {
                 case -1:
@@ -179,18 +188,19 @@ public final class MainAuto extends LinearOpMode {
 
             }
         }
-        //go to backboard
+        glideIntake();
+                                        //Go To Backboard!!
         if (start.equals(Side.BACKSTAGE)) {
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
                             .turnTo(Math.toRadians(90*reflect))
-                            .lineToY(-48*reflect)
+                            .lineToY(-60*reflect)
                             .build());
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
                             .setTangent(0)
                             .turnTo(0)
-                            .splineToConstantHeading(new Vector2d(45, -36*reflect), 0)
+                            .splineToConstantHeading(new Vector2d(40, -36*reflect), 0)
                             .build());
         } else if (start.equals(Side.AUDIENCE)) {
             Actions.runBlocking(
@@ -203,9 +213,51 @@ public final class MainAuto extends LinearOpMode {
                             .setTangent(0)
                             .turnTo(0)
                             .lineToX(24)
-                            .splineToConstantHeading(new Vector2d(45, -36*reflect), 0)
+                            .splineToConstantHeading(new Vector2d(40, -36*reflect), 0)
                             .build());
         }
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .turnTo(Math.toRadians(180))
+                        .build());
+        switch (lcr){
+            case LEFT:
+                Actions.runBlocking(
+                        drive.actionBuilder(drive.pose)
+                                .splineToConstantHeading(new Vector2d(45, (-30*reflect)+outtakeOffset), 0)
+                                .build());
+                break;
+            case CENTER:
+                Actions.runBlocking(
+                        drive.actionBuilder(drive.pose)
+                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset), 0)
+                                .build());
+                break;
+            case RIGHT:
+                Actions.runBlocking(
+                        drive.actionBuilder(drive.pose)
+                                .splineToConstantHeading(new Vector2d(45, (-42*reflect)+outtakeOffset), 0)
+                                .build());
+                break;
+        }
+        extendLinSlide();
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .turnTo(Math.toRadians(180))
+                        .lineToX(50)
+                        .build());
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .turnTo(Math.toRadians(180))
+                        .lineToX(45)
+                        .build());
+        unextendLinSlide();
+        if(park == Park.CORNER);
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .turnTo(Math.toRadians(180))
+                        .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
+                        .build());
     }
 
 
@@ -245,5 +297,17 @@ public final class MainAuto extends LinearOpMode {
             case "STAGE":
                 park = Park.STAGE;
         }
+    }
+    private static void setupRobot(){
+
+    }
+    private static void extendLinSlide(){
+
+    }
+    private static void unextendLinSlide(){
+        
+    }
+    private static void glideIntake(){
+
     }
 }
