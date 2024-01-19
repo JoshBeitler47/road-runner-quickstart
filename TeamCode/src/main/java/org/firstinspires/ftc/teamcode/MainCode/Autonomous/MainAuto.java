@@ -9,6 +9,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
@@ -45,6 +48,9 @@ public final class MainAuto extends LinearOpMode {
     public static String colorValue = "";
     public static String parkValue = "";
     VisionHandler visionHandler;
+    DcMotorEx intake_elbow, outtake_elbow, hang_arm;
+    DcMotor front_left, back_left, front_right, back_right, intake_grabber;
+    Servo left_intake, right_intake, outtake_wrist, drone_launcher;
 
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public void runOpMode() throws InterruptedException {
@@ -298,16 +304,46 @@ public final class MainAuto extends LinearOpMode {
                 park = Park.STAGE;
         }
     }
-    private static void setupRobot(){
+    private void setupRobot(){
+        intake_elbow = hardwareMap.get(DcMotorEx.class, "intake_elbow");
+        outtake_elbow = hardwareMap.get(DcMotorEx.class, "outtake_elbow");
+        hang_arm = hardwareMap.get(DcMotorEx.class, "hang_arm");
 
-    }
-    private static void extendLinSlide(){
+        intake_grabber = hardwareMap.get(DcMotor.class, "intake_grabber");
 
-    }
-    private static void unextendLinSlide(){
-        
-    }
-    private static void glideIntake(){
+        MotorInit(intake_elbow);
+        MotorInit(hang_arm);
+        MotorInit(outtake_elbow);
 
+        outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        outtake_elbow.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        left_intake = hardwareMap.get(Servo.class, "left_intake");
+        right_intake = hardwareMap.get(Servo.class, "right_intake");
+        outtake_wrist = hardwareMap.get(Servo.class, "outtake_wrist");
+        drone_launcher = hardwareMap.get(Servo.class, "drone_launcher");
+    }
+    private void extendLinSlide(){
+        outtake_elbow.setTargetPosition(2600);
+        outtake_elbow.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        outtake_elbow.setPower(1);
+
+        outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
+    private void unextendLinSlide(){
+        outtake_elbow.setTargetPosition(0);
+        outtake_elbow.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        outtake_elbow.setPower(1);
+    }
+    private void glideIntake(){
+        intake_elbow.setTargetPosition(-20);
+        intake_elbow.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        outtake_elbow.setPower(1);
+    }
+    private void MotorInit(DcMotorEx motor) {
+        motor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
     }
 }
