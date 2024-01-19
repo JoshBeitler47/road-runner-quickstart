@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionParameters;
 import org.firstinspires.ftc.teamcode.tuning.MecanumDrive;
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
@@ -43,15 +44,7 @@ public final class MainAuto extends LinearOpMode {
     public static String lcrValue = "";
     public static String colorValue = "";
     public static String parkValue = "";
-
-    //AprilTagStuff
-    final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
-    private static final boolean USE_WEBCAM = true;
-    private static int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
-    private VisionPortal visionPortal;
-    private AprilTagProcessor aprilTag;
-    private AprilTagDetection desiredTag = null;
-    boolean readyToGo = false;
+    VisionHandler visionHandler;
 
 
     public void runOpMode() throws InterruptedException {
@@ -62,16 +55,9 @@ public final class MainAuto extends LinearOpMode {
         MecanumDrive drive;
         int reflect;
         int LCRNUM = 0;
+        visionHandler = new VisionHandler();
         ConfigDashboard();
 
-        //AprilTagStuff
-        boolean targetFound = false;    // Set to true when an AprilTag target is detected
-        double desX = 0;
-        double desY = 0;
-        double desHeading = 0;
-        initAprilTag();
-        if (USE_WEBCAM)
-            setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
 
         while(!isStarted()){
             if (gamepad1.right_bumper){
@@ -102,26 +88,26 @@ public final class MainAuto extends LinearOpMode {
         }
         waitForStart();
 
-//        visionHandler.init(hardwareMap);
-//        waitForStart();
-//
-//        if(color.equals(Alliance.RED)){
-//            visionHandler.setRed();
-//        }else{
-//            visionHandler.setBlue();
-//        }
-//        visionHandler.setLeft();
-//        double left = visionHandler.read();
-//        visionHandler.setMiddle();
-//        double mid = visionHandler.read();
-//        visionHandler.setRight();
-//        double right = visionHandler.read();
-//        if(left >= mid && left >= right)
-//            lcr = Spike.LEFT;
-//        if(mid >= right && mid >= left)
-//            lcr = Spike.CENTER;
-//        if(right >= left && right >= mid)
-//            lcr = Spike.RIGHT;
+        visionHandler.init(hardwareMap);
+        waitForStart();
+
+        if(color.equals(Alliance.RED)){
+            visionHandler.setRed();
+        }else{
+            visionHandler.setBlue();
+        }
+        visionHandler.setLeft();
+        double left = visionHandler.read();
+        visionHandler.setMiddle();
+        double mid = visionHandler.read();
+        visionHandler.setRight();
+        double right = visionHandler.read();
+        if(left >= mid && left >= right)
+            lcr = Spike.LEFT;
+        if(mid >= right && mid >= left)
+            lcr = Spike.CENTER;
+        if(right >= left && right >= mid)
+            lcr = Spike.RIGHT;
 
         if (color.equals(Alliance.RED)) {
             reflect = 1;
@@ -220,35 +206,6 @@ public final class MainAuto extends LinearOpMode {
                             .splineToConstantHeading(new Vector2d(45, -36*reflect), 0)
                             .build());
         }
-        setDesAprilTag();
-        while (opModeIsActive()) {
-            targetFound = false;
-            desiredTag = null;
-            // Step through the list of detected tags and look for a matching tag
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            for (AprilTagDetection detection : currentDetections) {
-                // Look to see if we have size info on this tag.
-                if (detection.metadata != null) {
-                    if ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID)) {
-                        targetFound = true;
-                        desiredTag = detection;
-                        readyToGo = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-            if (readyToGo && targetFound) {
-                desX = desiredTag.ftcPose.x + DESIRED_DISTANCE * Math.cos(desiredTag.ftcPose.yaw - (Math.PI / 2));
-                desY = desiredTag.ftcPose.y + DESIRED_DISTANCE * Math.sin(desiredTag.ftcPose.yaw - (Math.PI / 2));
-                desHeading = desiredTag.ftcPose.yaw;
-                nextPose = new Pose2d(desX, desY, desHeading);
-                Actions.runBlocking(
-                        drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                .build());
-        }
     }
 
 
@@ -289,86 +246,4 @@ public final class MainAuto extends LinearOpMode {
                 park = Park.STAGE;
         }
     }
-    private void setManualExposure(int exposureMS, int gain) {
-        // Wait for the camera to be open, then use the controls
-
-        if (visionPortal == null) {
-            return;
-        }
-
-        // Make sure camera is streaming before we try to set the exposure controls
-        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
-                sleep(20);
-            }
-        }
-
-        // Set camera controls unless we are stopping.
-        if (!isStopRequested())
-        {
-            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-            if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
-                exposureControl.setMode(ExposureControl.Mode.Manual);
-                sleep(50);
-            }
-            exposureControl.setExposure((long)exposureMS, TimeUnit.MILLISECONDS);
-            sleep(20);
-            GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
-            gainControl.setGain(gain);
-            sleep(20);
-        }
-    }
-    private void initAprilTag() {
-        // Create the AprilTag processor by using a builder.
-        aprilTag = new AprilTagProcessor.Builder().build();
-
-        // Adjust Image Decimation to trade-off detection-range for detection-rate.
-        // eg: Some typical detection data using a Logitech C920 WebCam
-        // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
-        // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
-        // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second
-        // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second
-        // Note: Decimation can be changed on-the-fly to adapt during a match.
-        aprilTag.setDecimation(2);
-
-        // Create the vision portal by using a builder.
-        if (USE_WEBCAM) {
-            visionPortal = new VisionPortal.Builder()
-                    .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                    .addProcessor(aprilTag)
-                    .build();
-        } else {
-            visionPortal = new VisionPortal.Builder()
-                    .setCamera(BuiltinCameraDirection.BACK)
-                    .addProcessor(aprilTag)
-                    .build();
-        }
-    }
-    private void setDesAprilTag(){
-        if (color.equals(Alliance.RED)){
-            switch (lcr){
-                case LEFT:
-                    DESIRED_TAG_ID = 4;
-                    break;
-                case CENTER:
-                    DESIRED_TAG_ID = 5;
-                    break;
-                case RIGHT:
-                    DESIRED_TAG_ID = 6;
-                    break;
-            }
-        } else {
-            switch (lcr){
-                case LEFT:
-                    DESIRED_TAG_ID = 1;
-                    break;
-                case CENTER:
-                    DESIRED_TAG_ID = 2;
-                    break;
-                case RIGHT:
-                    DESIRED_TAG_ID = 3;
-                    break;
-            }
-        }
-        }
 }
