@@ -87,7 +87,7 @@ public final class MainAuto extends LinearOpMode {
         Pose2d startingPose;
         Pose2d nextPose;
         double xOffset = 0;
-        double yOffset = 2;
+        double yOffset = 1;
         double outtakeOffset = 2;
         MecanumDrive drive;
         int reflect;
