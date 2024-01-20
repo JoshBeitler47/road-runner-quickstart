@@ -60,7 +60,7 @@ public class TeleOpMain extends LinearOpMode {
     public boolean glideMode = false;
     public boolean slowMode = false;
     public boolean yToggle = false;
-    public boolean isFieldCentric = true;
+    public boolean isFieldCentric = false;
 
     private PIDController controller;
     public static double p = 0.02, i = 0, d = 0.0002;

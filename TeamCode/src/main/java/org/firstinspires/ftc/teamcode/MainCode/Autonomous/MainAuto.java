@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -54,8 +55,18 @@ public final class MainAuto extends LinearOpMode {
     DcMotor intake_grabber;
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
 
+
+    private PIDController controller;
+    public static double p = 0.02, i = 0, d = 0.0002;
+    public static double f = -0.15;
+    private final double ticks_in_degree = 144.0 / 180.0;
+    public static double offset = -25;
+    int armPos;
+    double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower, outtakeArmPower;
+
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public void runOpMode() throws InterruptedException {
+        controller = new PIDController(p, i, d);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         setupRobot();
         Pose2d startingPose;
@@ -102,7 +113,10 @@ public final class MainAuto extends LinearOpMode {
                 break;
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        glideIntake();
+        while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
+        {
+            SetIntakePIDTarget(-20);
+        }
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             startingPose = new Pose2d(12, -64*reflect, Math.toRadians(90*reflect));
             drive = new MecanumDrive(hardwareMap, startingPose);
@@ -155,7 +169,10 @@ public final class MainAuto extends LinearOpMode {
                                     .build());
                     break;
             }
-            glideIntake();
+            while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
+            {
+                SetIntakePIDTarget(-20);
+            }
         }
                                         //Go To Backboard!!
         if (start.equals(Side.BACKSTAGE)) {
@@ -208,7 +225,10 @@ public final class MainAuto extends LinearOpMode {
                                 .build());
                 break;
         }
-        //extendLinSlide();
+        while (outtake_elbow.getCurrentPosition() < 2300 && !isStopRequested())
+        {
+            SetOuttakePIDTarget(2500);
+        }
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
@@ -219,7 +239,10 @@ public final class MainAuto extends LinearOpMode {
                         .turnTo(Math.toRadians(180))
                         .lineToX(45)
                         .build());
-        unextendLinSlide();
+        while (outtake_elbow.getCurrentPosition() > 50 && !isStopRequested())
+        {
+            SetOuttakePIDTarget(0);
+        }
         if(park == Park.CORNER);
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
@@ -335,26 +358,40 @@ public final class MainAuto extends LinearOpMode {
         outtake_wrist = hardwareMap.get(Servo.class, "outtake_wrist");
         drone_launcher = hardwareMap.get(Servo.class, "drone_launcher");
     }
-    private void extendLinSlide(){
-        outtake_elbow.setTargetPosition(2600);
-        outtake_elbow.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        outtake_elbow.setPower(1);
-
-        outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-    }
-    private void unextendLinSlide(){
-        outtake_elbow.setTargetPosition(0);
-        outtake_elbow.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        outtake_elbow.setPower(1);
-    }
-    private void glideIntake(){
-        intake_elbow.setTargetPosition(-20);
-        intake_elbow.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        outtake_elbow.setPower(1);
-    }
     private void MotorInit(DcMotorEx motor) {
         motor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+    }
+    private void SetIntakePIDTarget(int target)
+    {
+        controller.setPID(p, i, d);
+        armPos = intake_elbow.getCurrentPosition();
+        pid = controller.calculate(armPos, target);
+        targetArmAngle = Math.toRadians((target - offset) / ticks_in_degree);
+        ff = Math.cos(targetArmAngle) * f;
+        currentArmAngle = Math.toRadians((armPos - offset) / ticks_in_degree);
+
+        intakeArmPower = pid + ff;
+
+        intake_elbow.setPower(intakeArmPower);
+        hang_arm.setPower(intakeArmPower);
+    }
+    private void SetOuttakePIDTarget(int target)
+    {
+        controller.setPID(p, i, d);
+        armPos = outtake_elbow.getCurrentPosition();
+        pid = controller.calculate(armPos, target);
+        targetArmAngle = Math.toRadians((target - offset) / ticks_in_degree);
+        ff = Math.cos(targetArmAngle) * f;
+        currentArmAngle = Math.toRadians((armPos - offset) / ticks_in_degree);
+
+        outtakeArmPower = pid + ff;
+
+        outtake_elbow.setPower(outtakeArmPower);
+    }
+    private void Unfold()
+    {
+        //Find motor positions at unfold levels
     }
 }
