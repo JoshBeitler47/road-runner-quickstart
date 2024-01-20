@@ -38,6 +38,8 @@ import java.util.concurrent.TimeUnit;
 @Config
 @TeleOp(name="Autonomous", group="Linear Opmode")
 
+//Intake Pixel goes closer to truss
+//Outtake pixel is on right side
 
 public final class MainAuto extends LinearOpMode {
     public static Side start = Side.AUDIENCE;
@@ -92,85 +94,93 @@ public final class MainAuto extends LinearOpMode {
         telemetry.update();
 
         lookForTeamElement();
-
-        if (color.equals(Alliance.RED)) {
-            reflect = 1;
-        } else {
-            reflect = -1;
-        }
-        xOffset *= reflect;
-        yOffset *= reflect;
-        if(start == Side.BACKSTAGE){
-            xOffset *= -1;
-        }
-        switch (lcr){
-            case LEFT:
-                LCRNUM = -1*reflect;
-                break;
-            case CENTER:
-                LCRNUM = 0;
-                break;
-            case RIGHT:
-                LCRNUM = 1*reflect;
-                break;
+//Set Reflect and things
+        {
+            if (color.equals(Alliance.RED)) {
+                reflect = 1;
+            } else {
+                reflect = -1;
+            }
+            xOffset *= reflect;
+            yOffset *= reflect;
+            if (start == Side.BACKSTAGE) {
+                xOffset *= -1;
+            }
+            switch (lcr) {
+                case LEFT:
+                    LCRNUM = -1 * reflect;
+                    break;
+                case CENTER:
+                    LCRNUM = 0;
+                    break;
+                case RIGHT:
+                    LCRNUM = 1 * reflect;
+                    break;
+            }
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        Unfold();
         while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
         {
             SetIntakePIDTarget(-20);
         }
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
-            startingPose = new Pose2d(12, -64*reflect, Math.toRadians(90*reflect));
-            drive = new MecanumDrive(hardwareMap, startingPose);
-            switch (LCRNUM) {
-                case -1:
-                    nextPose = new Pose2d(2 + xOffset, -30*reflect + yOffset, Math.toRadians(90*reflect));
-                    Actions.runBlocking(
-                            drive.actionBuilder(drive.pose)
-                                    .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                    .build());
-                    break;
-                case 0:
-                    nextPose = new Pose2d(12 + xOffset, -26*reflect + yOffset, Math.toRadians(90*reflect));
-                    Actions.runBlocking(
-                            drive.actionBuilder(drive.pose)
-                                    .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                    .build());
-                    break;
-                case 1:
-                    nextPose = new Pose2d(22 + xOffset, -30*reflect + yOffset, Math.toRadians(90*reflect));
-                    Actions.runBlocking(
-                            drive.actionBuilder(drive.pose)
-                                    .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                    .build());
-                    break;
+            {
+                startingPose = new Pose2d(12 - (4*reflect), -64 * reflect, Math.toRadians(90 * reflect));
+                drive = new MecanumDrive(hardwareMap, startingPose);
+                switch (LCRNUM) {
+                    case -1:
+                        nextPose = new Pose2d(2 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
+                        break;
+                    case 0:
+                        nextPose = new Pose2d(12 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
+                        break;
+                    case 1:
+                        nextPose = new Pose2d(22 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
+                        break;
+                }
             }
         } else {                                          //AudienceSide
-            startingPose = new Pose2d(-36, -64*reflect, Math.toRadians(90*reflect));
-            drive = new MecanumDrive(hardwareMap, startingPose);
-            switch (LCRNUM) {
-                case -1:
-                    nextPose = new Pose2d(-46 + xOffset, -30*reflect + yOffset, Math.toRadians(90*reflect));
-                    Actions.runBlocking(
-                            drive.actionBuilder(drive.pose)
-                                    .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                    .build());
-                    break;
-                case 0:
-                    nextPose = new Pose2d(-36 + xOffset, -26*reflect + yOffset, Math.toRadians(90*reflect));
-                    Actions.runBlocking(
-                            drive.actionBuilder(drive.pose)
-                                    .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                    .build());
-                    break;
-                case 1:
-                    nextPose = new Pose2d(-26 + xOffset, -30*reflect + yOffset, Math.toRadians(90*reflect));
-                    Actions.runBlocking(
-                            drive.actionBuilder(drive.pose)
-                                    .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                    .build());
-                    break;
+            {
+                startingPose = new Pose2d(-36 - (4*reflect), -64 * reflect, Math.toRadians(90 * reflect));
+                drive = new MecanumDrive(hardwareMap, startingPose);
+                switch (LCRNUM) {
+                    case -1:
+                        nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
+                        break;
+                    case 0:
+                        nextPose = new Pose2d(-36 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
+                        break;
+                    case 1:
+                        nextPose = new Pose2d(-26 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
+                        break;
+                }
             }
+            eject();
             while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
             {
                 SetIntakePIDTarget(-20);
@@ -263,8 +273,6 @@ public final class MainAuto extends LinearOpMode {
         double left = visionHandler.read();
         visionHandler.setMiddle();
         double mid = visionHandler.read();
-        //visionHandler.setRight();
-        //double right = visionHandler.read();
         if(left >= mid && left >= 0.5)
             lcr = Spike.LEFT;
         if(mid >= left && mid >= 0.5)
@@ -395,5 +403,8 @@ public final class MainAuto extends LinearOpMode {
     private void Unfold()
     {
         //Find motor positions at unfold levels
+    }
+    private void eject(){
+
     }
 }
