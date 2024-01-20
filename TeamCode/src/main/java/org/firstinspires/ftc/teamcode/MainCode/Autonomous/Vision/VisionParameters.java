@@ -22,18 +22,18 @@ public class VisionParameters {
     public static int redValMax = 255;
     public static int redValMin = 10;
 
-    public static int leftStartX = 0;
-    public static int leftStartY = 0;
-    public static int leftEndX = resX;
-    public static int leftEndY = resY;
+    public static int leftStartX = 16;
+    public static int leftStartY = 50;
+    public static int leftEndX = 90;
+    public static int leftEndY = 129;
 
-    public static int middleStartX = 0;
-    public static int middleStartY = 0;
-    public static int middleEndX = resX;
-    public static int middleEndY = resY;
+    public static int middleStartX = 190;
+    public static int middleStartY = 20;
+    public static int middleEndX = 239;
+    public static int middleEndY = 77;
 
-    public static int rightStartX = 0;
-    public static int rightStartY = 0;
-    public static int rightEndX = resX;
-    public static int rightEndY = resY;
+//    public static int rightStartX = 0;
+//    public static int rightStartY = 0;
+//    public static int rightEndX = resX;
+//    public static int rightEndY = resY;
 }

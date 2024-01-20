@@ -42,14 +42,14 @@ public class VisionHandler {
                 VisionParameters.middleEndY
         );
     }
-    public void setRight(){
-        pipeline.setPositionParameters(
-                VisionParameters.rightStartX,
-                VisionParameters.rightStartY,
-                VisionParameters.rightEndX,
-                VisionParameters.rightEndY
-        );
-    }
+//    public void setRight(){
+//        pipeline.setPositionParameters(
+//                VisionParameters.rightStartX,
+//                VisionParameters.rightStartY,
+//                VisionParameters.rightEndX,
+//                VisionParameters.rightEndY
+//        );
+//    }
     public void setRed(){
         pipeline.setColorParameters(
                 VisionParameters.redHueMin,

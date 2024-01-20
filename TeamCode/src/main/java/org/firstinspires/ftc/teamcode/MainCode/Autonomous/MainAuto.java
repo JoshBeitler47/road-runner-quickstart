@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.MainCode.Autonomous;
 
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -49,11 +51,13 @@ public final class MainAuto extends LinearOpMode {
     public static String parkValue = "";
     VisionHandler visionHandler;
     DcMotorEx intake_elbow, outtake_elbow, hang_arm;
-    DcMotor front_left, back_left, front_right, back_right, intake_grabber;
+    DcMotor intake_grabber;
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
 
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public void runOpMode() throws InterruptedException {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
         double xOffset = 3;
@@ -64,56 +68,17 @@ public final class MainAuto extends LinearOpMode {
         int LCRNUM = 0;
         visionHandler = new VisionHandler();
         ConfigDashboard();
-
-
-        while(!isStarted()){
-            if (gamepad1.right_bumper){
-                if(color == Alliance.RED){
-                    color = Alliance.BLUE;
-                } else {
-                    color = Alliance.RED;
-                }
-            }
-            if (gamepad1.left_bumper){
-                if(park == Park.CORNER){
-                    park = Park.STAGE;
-                } else {
-                    park = Park.CORNER;
-                }
-            }
-            if (gamepad1.a){
-                if(start == Side.AUDIENCE){
-                    start = Side.BACKSTAGE;
-                } else {
-                    start = Side.AUDIENCE;
-                }
-            }
-            telemetry.addData("Color: ", color.name());
-            telemetry.addData("Side: ", start.name());
-            telemetry.addData("Parking: ", park.name());
-            telemetry.update();
-        }
+        gamepadSetValues();
         visionHandler.init(hardwareMap);
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        telemetry.addData("Status", "Wait For start");
+        telemetry.update();
         waitForStart();
 
-        if(color.equals(Alliance.RED)){
-            visionHandler.setRed();
-        }else{
-            visionHandler.setBlue();
-        }
-        visionHandler.setLeft();
-        double left = visionHandler.read();
-        visionHandler.setMiddle();
-        double mid = visionHandler.read();
-        visionHandler.setRight();
-        double right = visionHandler.read();
-        if(left >= mid && left >= right)
-            lcr = Spike.LEFT;
-        if(mid >= right && mid >= left)
-            lcr = Spike.CENTER;
-        if(right >= left && right >= mid)
-            lcr = Spike.RIGHT;
+        telemetry.addData("Status", "Wait For start complete");
+        telemetry.update();
+
+        lookForTeamElement();
 
         if (color.equals(Alliance.RED)) {
             reflect = 1;
@@ -137,8 +102,6 @@ public final class MainAuto extends LinearOpMode {
                 break;
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        setupRobot();
         glideIntake();
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             startingPose = new Pose2d(12, -64*reflect, Math.toRadians(90*reflect));
@@ -191,10 +154,9 @@ public final class MainAuto extends LinearOpMode {
                                     .splineToConstantHeading(nextPose.position, nextPose.heading)
                                     .build());
                     break;
-
             }
+            glideIntake();
         }
-        glideIntake();
                                         //Go To Backboard!!
         if (start.equals(Side.BACKSTAGE)) {
             Actions.runBlocking(
@@ -246,7 +208,7 @@ public final class MainAuto extends LinearOpMode {
                                 .build());
                 break;
         }
-        extendLinSlide();
+        //extendLinSlide();
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
@@ -266,6 +228,55 @@ public final class MainAuto extends LinearOpMode {
                         .build());
     }
 
+    private void lookForTeamElement() throws InterruptedException {
+        if(color.equals(Alliance.RED)){
+            visionHandler.setRed();
+        }else{
+            visionHandler.setBlue();
+        }
+        visionHandler.setLeft();
+        double left = visionHandler.read();
+        visionHandler.setMiddle();
+        double mid = visionHandler.read();
+        //visionHandler.setRight();
+        //double right = visionHandler.read();
+        if(left >= mid && left >= 0.5)
+            lcr = Spike.LEFT;
+        if(mid >= left && mid >= 0.5)
+            lcr = Spike.CENTER;
+        if(left <= 0.5 && mid <= 0.5)
+            lcr = Spike.RIGHT;
+    }
+
+    private void gamepadSetValues() {
+        while(!isStarted()){
+            if (gamepad1.right_bumper){
+                if(color == Alliance.RED){
+                    color = Alliance.BLUE;
+                } else {
+                    color = Alliance.RED;
+                }
+            }
+            if (gamepad1.left_bumper){
+                if(park == Park.CORNER){
+                    park = Park.STAGE;
+                } else {
+                    park = Park.CORNER;
+                }
+            }
+            if (gamepad1.a){
+                if(start == Side.AUDIENCE){
+                    start = Side.BACKSTAGE;
+                } else {
+                    start = Side.AUDIENCE;
+                }
+            }
+            telemetry.addData("Color: ", color.name());
+            telemetry.addData("Side: ", start.name());
+            telemetry.addData("Parking: ", park.name());
+            telemetry.update();
+        }
+    }
 
 
     private static void ConfigDashboard() {
@@ -344,6 +355,6 @@ public final class MainAuto extends LinearOpMode {
     private void MotorInit(DcMotorEx motor) {
         motor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        motor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
     }
 }

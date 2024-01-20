@@ -18,16 +18,16 @@ public class Test extends LinearOpMode {
             telemetry.addData("Blue Left: ", visionHandler.read());
             visionHandler.setMiddle();
             telemetry.addData("Blue Middle: ", visionHandler.read());
-            visionHandler.setRight();
-            telemetry.addData("Blue Right: ", visionHandler.read());
+            //visionHandler.setRight();
+            //telemetry.addData("Blue Right: ", visionHandler.read());
 
             visionHandler.setRed();
             visionHandler.setLeft();
             telemetry.addData("Red Left: ", visionHandler.read());
             visionHandler.setMiddle();
             telemetry.addData("Red Middle: ", visionHandler.read());
-            visionHandler.setRight();
-            telemetry.addData("Red Right: ", visionHandler.read());
+            //visionHandler.setRight();
+            //telemetry.addData("Red Right: ", visionHandler.read());
 
             telemetry.update();
 
