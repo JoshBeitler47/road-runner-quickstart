@@ -62,6 +62,7 @@ public class TeleOpMain extends LinearOpMode {
     public boolean yToggle = false;
     public boolean isFieldCentric = false;
 
+    //First PID
     private PIDController controller;
     public static double p = 0.02, i = 0, d = 0.0002;
     public static double f = -0.15;
@@ -70,12 +71,25 @@ public class TeleOpMain extends LinearOpMode {
     public static double offset = -25;
     int armPos;
     double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower;
+
+    //Second PID
+    private PIDController controller2;
+    public static double p2 = 0.02, i2 = 0, d2 = 0.0002;
+    public static double f2 = 0;
+    private final double ticks_in_degree2 = 144.0 / 180.0;
+    public static int target2;
+    int armPos2;
+    double pid2, targetArmAngle2, ff2, currentArmAngle2, outtakeArmPower;
+
     Gamepad currentGamepad1;
     Gamepad previousGamepad1;
+
+    public static double temp = 0;
     @Override
     public void runOpMode() throws InterruptedException //START HERE
     {
         controller = new PIDController(p, i, d);
+        controller2 = new PIDController(p2, i2, d2);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         currentGamepad1 = new Gamepad();
@@ -248,10 +262,10 @@ public class TeleOpMain extends LinearOpMode {
             {
                 MoveRobot();
             }
-            ManualSlidePos();
+            //ManualSlidePos();
             RunIntake();
 
-            //PID stuff
+            //PID 1 Intake
             controller.setPID(p, i, d);
             armPos = intake_elbow.getCurrentPosition();
             pid = controller.calculate(armPos, target);
@@ -275,6 +289,20 @@ public class TeleOpMain extends LinearOpMode {
                 hang_arm.setPower(0);
             }
 
+            //PID 2 Outtake
+            controller2.setPID(p2, i2, d2);
+            armPos2 = outtake_elbow.getCurrentPosition();
+            pid2 = controller2.calculate(armPos2, target2);
+            targetArmAngle2 = Math.toRadians((target2) / ticks_in_degree2);
+            ff2 = Math.cos(targetArmAngle2) * f2;
+            currentArmAngle2 = Math.toRadians((armPos2) / ticks_in_degree2);
+
+            outtakeArmPower = pid2; // + ff2;
+
+            outtake_elbow.setPower(outtakeArmPower);
+            //outtake_elbow.setPower(temp);
+
+
             TelemetryData();
         }
     }
@@ -292,8 +320,7 @@ public class TeleOpMain extends LinearOpMode {
 
         intake_grabber = hardwareMap.get(DcMotor.class, "intake_grabber");
 
-        intake_elbow.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        intake_elbow.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        MotorInit(intake_elbow);
         MotorInit(hang_arm);
         MotorInit(outtake_elbow);
 
@@ -311,7 +338,6 @@ public class TeleOpMain extends LinearOpMode {
 
     private void MotorInit(DcMotorEx motor) {
         motor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
     }
 
@@ -405,25 +431,33 @@ public class TeleOpMain extends LinearOpMode {
 
     private void TelemetryData() {
         double outtakePos = outtake_wrist.getPosition();
-        double gameInput = gamepad1.right_stick_y;
         int intakePos = intake_elbow.getCurrentPosition();
         telemetry.addData("Intake Elbow Position:", intakePos);
         telemetry.addData("Outtake Servo Position:", outtakePos);
-        //telemetry.addData("intake arm power", intakeArmPower);
-        //telemetry.addData("pid", pid);
-        //telemetry.addData("ff", ff);
-        //telemetry.addData("target arm angle", targetArmAngle);
-        //telemetry.addData("current arm angle", currentArmAngle);
+        telemetry.addData("Outtake Elbow Position", outtake_elbow.getCurrentPosition());
+
+        telemetry.addData("outtake arm power", outtakeArmPower);
+        telemetry.addData("pid2", pid2);
+        telemetry.addData("ff2", ff2);
+        telemetry.addData("target arm angle", targetArmAngle2);
+        telemetry.addData("current arm angle", currentArmAngle2);
+
         telemetry.addData("Target:", target);
+
+        telemetry.addData("Target 2:", target2);
+
         telemetry.addData("GlideMode:", glideMode);
         telemetry.addData("SlowMode:", slowMode);
+
         telemetry.addData("Previous Input:", previousGamepad1);
         telemetry.addData("Current Input:", currentGamepad1);
-        telemetry.addData("Run Time", runtime.seconds());
-        telemetry.addData("Reset State", resetState.name());
-        telemetry.addData("Init State", initState.name());
-        telemetry.addData("Power", intakeArmPower);
-        telemetry.addData("Lin Slide", outtake_elbow.getCurrentPosition());
+        telemetry.addData("Outtake GetPower():", outtake_elbow.getPower());
+
+        //telemetry.addData("Run Time", runtime.seconds());
+        //telemetry.addData("Reset State", resetState.name());
+        //telemetry.addData("Init State", initState.name());
+        //telemetry.addData("Power", intakeArmPower);
+        //telemetry.addData("Lin Slide", outtake_elbow.getCurrentPosition());
         telemetry.update();
     }
     private void RunIntake() {

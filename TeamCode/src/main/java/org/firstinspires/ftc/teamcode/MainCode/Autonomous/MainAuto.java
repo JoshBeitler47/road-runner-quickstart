@@ -58,8 +58,10 @@ public final class MainAuto extends LinearOpMode {
 
     private PIDController controller;
     public static double p = 0.02, i = 0, d = 0.0002;
+    public static double p2 = 0.02, i2 = 0, d2 = 0.0002;
     public static double f = -0.15;
     private final double ticks_in_degree = 144.0 / 180.0;
+    private final double ticks_in_degree2 = 144.0 / 180.0;
     public static double offset = -25;
     int armPos;
     double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower, outtakeArmPower;
@@ -379,12 +381,12 @@ public final class MainAuto extends LinearOpMode {
     }
     private void SetOuttakePIDTarget(int target)
     {
-        controller.setPID(p, i, d);
+        controller.setPID(p2, i2, d2);
         armPos = outtake_elbow.getCurrentPosition();
         pid = controller.calculate(armPos, target);
-        targetArmAngle = Math.toRadians((target - offset) / ticks_in_degree);
+        targetArmAngle = Math.toRadians((target) / ticks_in_degree2);
         ff = Math.cos(targetArmAngle) * f;
-        currentArmAngle = Math.toRadians((armPos - offset) / ticks_in_degree);
+        currentArmAngle = Math.toRadians((armPos) / ticks_in_degree2);
 
         outtakeArmPower = pid + ff;
 
