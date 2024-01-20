@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
@@ -58,25 +59,35 @@ public final class MainAuto extends LinearOpMode {
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
 
 
+    //First PID
     private PIDController controller;
     public static double p = 0.02, i = 0, d = 0.0002;
-    public static double p2 = 0.02, i2 = 0, d2 = 0.0002;
     public static double f = -0.15;
     private final double ticks_in_degree = 144.0 / 180.0;
-    private final double ticks_in_degree2 = 144.0 / 180.0;
     public static double offset = -25;
     int armPos;
-    double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower, outtakeArmPower;
+    double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower;
+
+    //Second PID
+    private PIDController controller2;
+    public static double p2 = 0.02, i2 = 0, d2 = 0.0002;
+    public static double f2 = 0;
+    private final double ticks_in_degree2 = 144.0 / 180.0;
+    int armPos2;
+    double pid2, targetArmAngle2, ff2, currentArmAngle2, outtakeArmPower;
+
+    private ElapsedTime runtime = new ElapsedTime();
 
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p, i, d);
+        controller2 = new PIDController(p2, i2, d2);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
         double xOffset = 3;
-        double yOffset = -5;
+        double yOffset = 2;
         double outtakeOffset = 2;
         MecanumDrive drive;
         int reflect;
@@ -119,11 +130,7 @@ public final class MainAuto extends LinearOpMode {
             }
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        Unfold();
-        while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
-        {
-            SetIntakePIDTarget(-20);
-        }
+        outtake_wrist.setPosition(.43);
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             {
                 startingPose = new Pose2d(12 - (4*reflect), -64 * reflect, Math.toRadians(90 * reflect));
@@ -180,11 +187,6 @@ public final class MainAuto extends LinearOpMode {
                         break;
                 }
             }
-            eject();
-            while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
-            {
-                SetIntakePIDTarget(-20);
-            }
         }
                                         //Go To Backboard!!
         if (start.equals(Side.BACKSTAGE)) {
@@ -237,10 +239,13 @@ public final class MainAuto extends LinearOpMode {
                                 .build());
                 break;
         }
+        outtake_wrist.setPosition(.13);
         while (outtake_elbow.getCurrentPosition() < 2300 && !isStopRequested())
         {
             SetOuttakePIDTarget(2500);
         }
+        outtake_elbow.setPower(0);
+        outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
@@ -251,16 +256,21 @@ public final class MainAuto extends LinearOpMode {
                         .turnTo(Math.toRadians(180))
                         .lineToX(45)
                         .build());
-        while (outtake_elbow.getCurrentPosition() > 50 && !isStopRequested())
+        while (outtake_elbow.getCurrentPosition() > 10 && !isStopRequested())
         {
             SetOuttakePIDTarget(0);
         }
+        outtake_elbow.setPower(0);
         if(park == Park.CORNER);
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
                         .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
                         .build());
+        while (intake_elbow.getCurrentPosition() < 25)
+        {
+            SetIntakePIDTarget(30);
+        }
     }
 
     private void lookForTeamElement() throws InterruptedException {
@@ -387,24 +397,37 @@ public final class MainAuto extends LinearOpMode {
         intake_elbow.setPower(intakeArmPower);
         hang_arm.setPower(intakeArmPower);
     }
-    private void SetOuttakePIDTarget(int target)
+    private void SetOuttakePIDTarget(int target2)
     {
-        controller.setPID(p2, i2, d2);
-        armPos = outtake_elbow.getCurrentPosition();
-        pid = controller.calculate(armPos, target);
-        targetArmAngle = Math.toRadians((target) / ticks_in_degree2);
-        ff = Math.cos(targetArmAngle) * f;
-        currentArmAngle = Math.toRadians((armPos) / ticks_in_degree2);
+        controller2.setPID(p2, i2, d2);
+        armPos2 = outtake_elbow.getCurrentPosition();
+        pid2 = controller2.calculate(armPos2, target2);
+        targetArmAngle2 = Math.toRadians((target2) / ticks_in_degree2);
+        ff2 = Math.cos(targetArmAngle2) * f2;
+        currentArmAngle2 = Math.toRadians((armPos2) / ticks_in_degree2);
 
-        outtakeArmPower = pid + ff;
+        outtakeArmPower = pid2; // + ff2;
 
         outtake_elbow.setPower(outtakeArmPower);
     }
     private void Unfold()
     {
-        //Find motor positions at unfold levels
+        while (intake_elbow.getCurrentPosition() < 90)
+        {
+            SetIntakePIDTarget(100);
+        }
+        right_intake.setPosition(.857);
+        outtake_wrist.setPosition(.43);
+
+        intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     private void eject(){
+        runtime.reset();
 
+        while (runtime.seconds() <= 1.5 && !isStopRequested())
+        {
+            intake_grabber.setPower(.2);
+        }
     }
 }

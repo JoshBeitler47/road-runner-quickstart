@@ -84,7 +84,6 @@ public class TeleOpMain extends LinearOpMode {
     Gamepad currentGamepad1;
     Gamepad previousGamepad1;
 
-    public static double temp = 0;
     @Override
     public void runOpMode() throws InterruptedException //START HERE
     {
@@ -98,7 +97,7 @@ public class TeleOpMain extends LinearOpMode {
         HardwareSetupMotors();
         HardwareSetupServos();
         ImuSetup();
-        right_intake.setPosition(intakeServoStart);
+        //right_intake.setPosition(intakeServoStart);
 
         runtime.reset();
         target = 0;
@@ -217,7 +216,7 @@ public class TeleOpMain extends LinearOpMode {
             }
             if (currentGamepad1.left_stick_button && !previousGamepad1.left_stick_button)
             {
-                isFieldCentric = !isFieldCentric;
+                drone_launcher.setPosition(-.4);
             }
             if (currentGamepad1.x && !previousGamepad1.x) {
                 intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -300,8 +299,6 @@ public class TeleOpMain extends LinearOpMode {
             outtakeArmPower = pid2; // + ff2;
 
             outtake_elbow.setPower(outtakeArmPower);
-            //outtake_elbow.setPower(temp);
-
 
             TelemetryData();
         }
