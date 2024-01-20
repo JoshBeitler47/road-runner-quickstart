@@ -38,8 +38,6 @@ public class BoxTest extends LinearOpMode {
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
-        VisionHandler visionHandler = new VisionHandler();
-        visionHandler.init(hardwareMap);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -55,7 +53,7 @@ public class BoxTest extends LinearOpMode {
 
         ElementDetectionPipeline elementDetectionPipeline1 = new ElementDetectionPipeline();
         ElementDetectionPipeline elementDetectionPipeline2 = new ElementDetectionPipeline();
-        //camera.setPipeline(elementDetectionPipeline1);
+        camera.setPipeline(elementDetectionPipeline1);
 
         waitForStart();
 
@@ -104,6 +102,12 @@ public class BoxTest extends LinearOpMode {
                             VisionParameters.redValMin,
                             VisionParameters.redValMax
                     );
+                }
+                if (gamepad1.right_bumper){
+                    camera.setPipeline(elementDetectionPipeline2);
+                }
+                if (gamepad1.left_bumper){
+                    camera.setPipeline(elementDetectionPipeline1);
                 }
             }
 

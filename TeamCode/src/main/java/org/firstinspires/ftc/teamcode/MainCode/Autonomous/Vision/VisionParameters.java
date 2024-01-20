@@ -31,9 +31,4 @@ public class VisionParameters {
     public static int middleStartY = 20;
     public static int middleEndX = 239;
     public static int middleEndY = 77;
-
-//    public static int rightStartX = 0;
-//    public static int rightStartY = 0;
-//    public static int rightEndX = resX;
-//    public static int rightEndY = resY;
 }
