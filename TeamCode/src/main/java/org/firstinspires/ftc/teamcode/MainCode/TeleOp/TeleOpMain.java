@@ -219,8 +219,15 @@ public class TeleOpMain extends LinearOpMode {
                 drone_launcher.setPosition(-.4);
             }
             if (currentGamepad1.x && !previousGamepad1.x) {
-                intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                if (gamepad1.right_trigger > 0.25)
+                {
+                    upToDown();
+                }
+                else
+                {
+                    intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                }
             }
             if (currentGamepad1.y && !previousGamepad1.y)
             {
@@ -261,7 +268,7 @@ public class TeleOpMain extends LinearOpMode {
             {
                 MoveRobot();
             }
-            //ManualSlidePos();
+            ManualSlidePos();
             RunIntake();
 
             //PID 1 Intake
@@ -289,7 +296,7 @@ public class TeleOpMain extends LinearOpMode {
             }
 
             //PID 2 Outtake
-            controller2.setPID(p2, i2, d2);
+            /*controller2.setPID(p2, i2, d2);
             armPos2 = outtake_elbow.getCurrentPosition();
             pid2 = controller2.calculate(armPos2, target2);
             targetArmAngle2 = Math.toRadians((target2) / ticks_in_degree2);
@@ -298,7 +305,7 @@ public class TeleOpMain extends LinearOpMode {
 
             outtakeArmPower = pid2; // + ff2;
 
-            outtake_elbow.setPower(outtakeArmPower);
+            outtake_elbow.setPower(outtakeArmPower);*/
 
             TelemetryData();
         }
@@ -465,6 +472,12 @@ public class TeleOpMain extends LinearOpMode {
         } else {
             intake_grabber.setPower(0);
         }
+    }
+    private void upToDown()
+    {
+        glideMode = false;
+        target = 110;
+        intake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 }
 

@@ -86,7 +86,7 @@ public final class MainAuto extends LinearOpMode {
         setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
-        double xOffset = 3;
+        double xOffset = 0;
         double yOffset = 2;
         double outtakeOffset = 2;
         MecanumDrive drive;
@@ -199,7 +199,7 @@ public final class MainAuto extends LinearOpMode {
                     drive.actionBuilder(drive.pose)
                             .setTangent(0)
                             .turnTo(0)
-                            .splineToConstantHeading(new Vector2d(40, -36*reflect), 0)
+                            .splineToConstantHeading(new Vector2d(35, -36*reflect), 0)
                             .build());
         } else if (start.equals(Side.AUDIENCE)) {
             Actions.runBlocking(
@@ -212,7 +212,7 @@ public final class MainAuto extends LinearOpMode {
                             .setTangent(0)
                             .turnTo(0)
                             .lineToX(24)
-                            .splineToConstantHeading(new Vector2d(40, -36*reflect), 0)
+                            .splineToConstantHeading(new Vector2d(35, -36*reflect), 0)
                             .build());
         }
         Actions.runBlocking(
@@ -223,19 +223,19 @@ public final class MainAuto extends LinearOpMode {
             case LEFT:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-30*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(40, (-30*reflect)+outtakeOffset), 0)
                                 .build());
                 break;
             case CENTER:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(40, (-36*reflect)+outtakeOffset), 0)
                                 .build());
                 break;
             case RIGHT:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-42*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(40, (-42*reflect)+outtakeOffset), 0)
                                 .build());
                 break;
         }
@@ -249,12 +249,12 @@ public final class MainAuto extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToX(50)
+                        .lineToX(48)
                         .build());
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToX(45)
+                        .lineToX(40)
                         .build());
         while (outtake_elbow.getCurrentPosition() > 10 && !isStopRequested())
         {
@@ -265,7 +265,7 @@ public final class MainAuto extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
+                        .splineToConstantHeading(new Vector2d(48, -64*reflect), 0)
                         .build());
         while (intake_elbow.getCurrentPosition() < 25)
         {
@@ -283,12 +283,12 @@ public final class MainAuto extends LinearOpMode {
         double left = visionHandler.read();
         visionHandler.setMiddle();
         double mid = visionHandler.read();
-        if(left >= mid && left >= 0.5)
+        if(left >= mid)
             lcr = Spike.LEFT;
-        if(mid >= left && mid >= 0.5)
+        if(mid >= left)
             lcr = Spike.CENTER;
-        if(left <= 0.5 && mid <= 0.5)
-            lcr = Spike.RIGHT;
+        //if(left <= 0.5 && mid <= 0.5)
+          //  lcr = Spike.RIGHT;
     }
 
     private void gamepadSetValues() {
