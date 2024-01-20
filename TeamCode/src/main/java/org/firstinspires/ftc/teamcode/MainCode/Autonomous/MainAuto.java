@@ -117,6 +117,7 @@ public final class MainAuto extends LinearOpMode {
             }
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        Unfold();
         while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
         {
             SetIntakePIDTarget(-20);
@@ -177,6 +178,7 @@ public final class MainAuto extends LinearOpMode {
                         break;
                 }
             }
+            eject();
             while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
             {
                 SetIntakePIDTarget(-20);
@@ -399,5 +401,8 @@ public final class MainAuto extends LinearOpMode {
     private void Unfold()
     {
         //Find motor positions at unfold levels
+    }
+    private void eject(){
+
     }
 }
