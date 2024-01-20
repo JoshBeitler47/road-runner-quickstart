@@ -226,6 +226,7 @@ public class TeleOpMain extends LinearOpMode {
                 else
                 {
                     intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    target = 0;
                     intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 }
             }
