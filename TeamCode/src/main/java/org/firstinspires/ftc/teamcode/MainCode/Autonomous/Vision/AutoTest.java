@@ -8,21 +8,35 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Alliance;
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Park;
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Side;
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionParameters;
 import org.firstinspires.ftc.teamcode.tuning.MecanumDrive;
+import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Alliance;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Side;
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Park;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 @Config
-@TeleOp(name="AutonomousTest", group="Linear Opmode")
+@TeleOp(name="AutoTest", group="Linear Opmode")
 
 //Intake Pixel goes closer to truss
 //Outtake pixel is on right side
@@ -54,6 +68,10 @@ public final class AutoTest extends LinearOpMode {
     int armPos;
     double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower, outtakeArmPower;
 
+    public MecanumDrive drive;
+    public int reflect;
+    public boolean tooClose = false;
+
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p, i, d);
@@ -64,24 +82,18 @@ public final class AutoTest extends LinearOpMode {
         double xOffset = 3;
         double yOffset = -5;
         double outtakeOffset = 2;
-        MecanumDrive drive;
-        int reflect;
         int LCRNUM = 0;
         visionHandler = new VisionHandler();
         ConfigDashboard();
         gamepadSetValues();
-        visionHandler.init(hardwareMap);
+        //visionHandler.init(hardwareMap);
 
-        telemetry.addData("Status", "Wait For start");
-        telemetry.update();
         waitForStart();
 
-        telemetry.addData("Status", "Wait For start complete");
-        telemetry.update();
-
-//        lookForTeamElement();
+        //lookForTeamElement();
 //Set Reflect and things
         {
+            // Red is 1, Blue is -1
             if (color.equals(Alliance.RED)) {
                 reflect = 1;
             } else {
@@ -105,22 +117,27 @@ public final class AutoTest extends LinearOpMode {
             }
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        Unfold();
+        //Unfold();
 //        while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
 //        {
-//            SetIntakePIDTarget(0);
+//            SetIntakePIDTarget(-20);
 //        }
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             {
-                startingPose = new Pose2d(12 - (4*reflect), -64 * reflect, Math.toRadians(90 * reflect));
+                startingPose = new Pose2d(12 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
-                        nextPose = new Pose2d(2 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == 1){
+                            tooClose = true;
+                            tooCloseRedBack();
+                        } else {
+                            nextPose = new Pose2d(2 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
                     case 0:
                         nextPose = new Pose2d(12 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
@@ -130,25 +147,36 @@ public final class AutoTest extends LinearOpMode {
                                         .build());
                         break;
                     case 1:
-                        nextPose = new Pose2d(22 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == -1){
+                            tooClose = true;
+                            tooCloseBlueBack();
+                        } else {
+                            nextPose = new Pose2d(22 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
+
                 }
             }
         } else {                                          //AudienceSide
             {
-                startingPose = new Pose2d(-36 - (4*reflect), -64 * reflect, Math.toRadians(90 * reflect));
+                startingPose = new Pose2d(-36 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
-                        nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == -1){
+                            tooClose = true;
+                            tooCloseBlueAudience();
+                        } else {
+                            nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
                     case 0:
                         nextPose = new Pose2d(-36 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
@@ -158,51 +186,57 @@ public final class AutoTest extends LinearOpMode {
                                         .build());
                         break;
                     case 1:
-                        nextPose = new Pose2d(-26 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == 1){
+                            tooClose = true;
+                            tooCloseRedAudience();
+                        } else {
+                            nextPose = new Pose2d(-26 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
                 }
             }
-            eject();
 //            while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
 //            {
 //                SetIntakePIDTarget(-20);
 //            }
         }
-                                        //Go To Backboard!!
-        if (start.equals(Side.BACKSTAGE)) {
+        //Go To Backboard!!
+        if (tooClose == true){
+            if (start.equals(Side.BACKSTAGE)) {
+                Actions.runBlocking(
+                        drive.actionBuilder(drive.pose)
+                                .turnTo(Math.toRadians(90 * reflect))
+                                .lineToY(-60 * reflect)
+                                .build());
+                Actions.runBlocking(
+                        drive.actionBuilder(drive.pose)
+                                .setTangent(0)
+                                .turnTo(0)
+                                .splineToConstantHeading(new Vector2d(40, -36 * reflect), 0)
+                                .build());
+            } else if (start.equals(Side.AUDIENCE)) {
+                Actions.runBlocking(
+                        drive.actionBuilder(drive.pose)
+                                .turnTo(Math.toRadians(90 * reflect))
+                                .lineToY(-60 * reflect)
+                                .build());
+                Actions.runBlocking(
+                        drive.actionBuilder(drive.pose)
+                                .setTangent(0)
+                                .turnTo(0)
+                                .lineToX(24)
+                                .splineToConstantHeading(new Vector2d(40, -36 * reflect), 0)
+                                .build());
+            }
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(Math.toRadians(90*reflect))
-                            .lineToY(-60*reflect)
-                            .build());
-            Actions.runBlocking(
-                    drive.actionBuilder(drive.pose)
-                            .setTangent(0)
-                            .turnTo(0)
-                            .splineToConstantHeading(new Vector2d(40, -36*reflect), 0)
-                            .build());
-        } else if (start.equals(Side.AUDIENCE)) {
-            Actions.runBlocking(
-                    drive.actionBuilder(drive.pose)
-                            .turnTo(Math.toRadians(90*reflect))
-                            .lineToY(-60*reflect)
-                            .build());
-            Actions.runBlocking(
-                    drive.actionBuilder(drive.pose)
-                            .setTangent(0)
-                            .turnTo(0)
-                            .lineToX(24)
-                            .splineToConstantHeading(new Vector2d(40, -36*reflect), 0)
+                            .turnTo(Math.toRadians(180))
                             .build());
         }
-        Actions.runBlocking(
-                drive.actionBuilder(drive.pose)
-                        .turnTo(Math.toRadians(180))
-                        .build());
         switch (LCRNUM){
             case -1:
                 Actions.runBlocking(
@@ -390,7 +424,52 @@ public final class AutoTest extends LinearOpMode {
     {
         //Find motor positions at unfold levels
     }
-    private void eject(){
-
+    private void tooCloseRedBack(){
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .splineTo(new Vector2d(22, -30), Math.PI)
+                        .lineToX(2)
+                        .strafeToConstantHeading(new Vector2d(2, -36))
+                        .turnTo(Math.toRadians(180)) //Maybe unneccesary
+                        .setReversed(true)
+                        .lineToX(40)
+                        .setReversed(false)
+                        .build());
+    }
+    private void tooCloseBlueBack(){
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .splineTo(new Vector2d(22, 30), Math.PI)
+                        .lineToX(2)
+                        .strafeToConstantHeading(new Vector2d(2, 36))
+                        .turnTo(Math.toRadians(180))
+                        .setReversed(true)
+                        .lineToX(40)
+                        .setReversed(false)
+                        .build());
+    }
+    private void tooCloseRedAudience(){
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .splineTo(new Vector2d(-46, -30), Math.PI)
+                        .lineToX(-26)
+                        .strafeToConstantHeading(new Vector2d(-26, -36))
+                        .turnTo(Math.toRadians(180))
+                        .setReversed(true)
+                        .lineToX(40)
+                        .setReversed(false)
+                        .build());
+    }
+    private void tooCloseBlueAudience(){
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .splineTo(new Vector2d(-46, 30), Math.PI)
+                        .lineToX(-26)
+                        .strafeToConstantHeading(new Vector2d(-26, 36))
+                        .turnTo(Math.toRadians(180))
+                        .setReversed(true)
+                        .lineToX(40)
+                        .setReversed(false)
+                        .build());
     }
 }
