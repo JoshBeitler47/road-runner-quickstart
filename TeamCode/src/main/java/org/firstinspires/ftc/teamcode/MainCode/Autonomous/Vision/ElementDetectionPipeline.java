@@ -29,6 +29,13 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
     int minVal = 0;
     int maxVal = 255;
 
+    int readX = 0;
+    int readY = 0;
+
+    int readHue = 0;
+    int readSat = 0;
+    int readVal = 0;
+
     void setColorParameters(
             int minHue,
             int maxHue,
@@ -70,17 +77,24 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat image) {
 
+        Mat converted = image.clone();
+        Imgproc.cvtColor(image, converted, Imgproc.COLOR_BGR2HSV);
 
-        Mat submat = image.submat(yStart, yEnd, xStart, xEnd);
-        Mat thresh = submat.clone();
-        Imgproc.cvtColor(submat, thresh, Imgproc.COLOR_BGR2HSV);
+        double[] readPix = converted.get(readY, readX);
+        readHue = (int) readPix[0];
+        readSat = (int) readPix[1];
+        readVal = (int) readPix[2];
+
+        Mat convertedSubmat = converted.submat(yStart, yEnd, xStart, xEnd);
+        Mat thresh = convertedSubmat.clone();
+
         Core.inRange(thresh, new Scalar(minHue, minSat, minVal), new Scalar(maxHue, maxSat, maxVal), thresh);
-
         amount = Core.sumElems(thresh).val[0]/255./(xEnd - xStart)/(yEnd - yStart);
 
 
         Mat thresh4 = new Mat();
         Imgproc.cvtColor(thresh, thresh4, Imgproc.COLOR_GRAY2BGRA);
+        Mat submat = image.submat(yStart, yEnd, xStart, xEnd);
         Core.add(submat, thresh4, submat);
 
         Imgproc.rectangle(
@@ -88,7 +102,14 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
                 new Point(xStart, yStart),
                 new Point(xEnd, yEnd),
                 new Scalar(255, 255, 255),
-                5
+                3
+        );
+        Imgproc.circle(
+                image,
+                new Point(readX, readY),
+                3,
+                new Scalar(0, 0, 0),
+                2
         );
 
         thresh.release();
