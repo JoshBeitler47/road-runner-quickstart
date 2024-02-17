@@ -86,8 +86,8 @@ public final class MainAuto extends LinearOpMode {
         setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
-        double xOffset = 0;
-        double yOffset = 1;
+        double xOffset = -6;
+        double yOffset = 4;
         double outtakeOffset = 2;
         MecanumDrive drive;
         int reflect;
@@ -112,11 +112,7 @@ public final class MainAuto extends LinearOpMode {
             } else {
                 reflect = -1;
             }
-            xOffset *= reflect;
             yOffset *= reflect;
-            if (start == Side.BACKSTAGE) {
-                xOffset *= -1;
-            }
             switch (lcr) {
                 case LEFT:
                     LCRNUM = -1 * reflect;
