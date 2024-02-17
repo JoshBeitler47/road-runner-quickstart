@@ -86,12 +86,7 @@ public final class MainAuto extends LinearOpMode {
         gamepadSetValues();
         visionHandler.init(hardwareMap);
 
-        telemetry.addData("Status", "Wait For start");
-        telemetry.update();
         waitForStart();
-
-        telemetry.addData("Status", "Wait For start complete");
-        telemetry.update();
 
         lookForTeamElement();
 //Set Reflect and things
@@ -126,15 +121,19 @@ public final class MainAuto extends LinearOpMode {
         }
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             {
-                startingPose = new Pose2d(12 - (4*reflect), -64 * reflect, Math.toRadians(90 * reflect));
+                startingPose = new Pose2d(12 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
-                        nextPose = new Pose2d(2 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == 1){
+                            tooCloseRedBack();
+                        } else {
+                            nextPose = new Pose2d(2 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
                     case 0:
                         nextPose = new Pose2d(12 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
@@ -144,25 +143,34 @@ public final class MainAuto extends LinearOpMode {
                                         .build());
                         break;
                     case 1:
-                        nextPose = new Pose2d(22 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == -1){
+                            tooCloseBlueBack();
+                        } else {
+                            nextPose = new Pose2d(22 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
+
                 }
             }
         } else {                                          //AudienceSide
             {
-                startingPose = new Pose2d(-36 - (4*reflect), -64 * reflect, Math.toRadians(90 * reflect));
+                startingPose = new Pose2d(-36 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
-                        nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == -1){
+                            tooCloseBlueAudience();
+                        } else {
+                            nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
                     case 0:
                         nextPose = new Pose2d(-36 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
@@ -172,15 +180,18 @@ public final class MainAuto extends LinearOpMode {
                                         .build());
                         break;
                     case 1:
-                        nextPose = new Pose2d(-26 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                        .build());
+                        if (reflect == 1){
+
+                        } else {
+                            nextPose = new Pose2d(-26 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                            Actions.runBlocking(
+                                    drive.actionBuilder(drive.pose)
+                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                            .build());
+                        }
                         break;
                 }
             }
-            eject();
             while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
             {
                 SetIntakePIDTarget(-20);
@@ -404,7 +415,20 @@ public final class MainAuto extends LinearOpMode {
     {
         //Find motor positions at unfold levels
     }
-    private void eject(){
+    private void tooCloseRedBack()
+    {
+
+    }
+    private void tooCloseBlueBack()
+    {
+
+    }
+    private void tooCloseRedAudience()
+    {
+
+    }
+    private void tooCloseBlueAudience()
+    {
 
     }
 }
