@@ -16,6 +16,7 @@ public class Configure extends LinearOpMode {
         HUE,
         SAT,
         VAL,
+        EYEDROPPER,
         POS
     }
 
@@ -64,7 +65,7 @@ public class Configure extends LinearOpMode {
                             VisionParameters.blueValMax
                     );
                 }
-                if (gamepad1.b) {
+                if (gamepad1.b && parameterToModify != Parameter.EYEDROPPER) {
                     elementDetectionPipeline.setColorParameters(
                             VisionParameters.redHueMin,
                             VisionParameters.redHueMax,
@@ -82,7 +83,7 @@ public class Configure extends LinearOpMode {
                             VisionParameters.middleEndY
                     );
                 }
-                if (gamepad1.a) {
+                if (gamepad1.a && parameterToModify != Parameter.EYEDROPPER) {
                     elementDetectionPipeline.setPositionParameters(
                             VisionParameters.leftStartX,
                             VisionParameters.leftStartY,
@@ -104,6 +105,9 @@ public class Configure extends LinearOpMode {
                                 parameterToModify = Parameter.VAL;
                                 break;
                             case VAL:
+                                parameterToModify = Parameter.EYEDROPPER;
+                                break;
+                            case EYEDROPPER:
                                 parameterToModify = Parameter.POS;
                                 break;
                             case POS:
@@ -122,8 +126,11 @@ public class Configure extends LinearOpMode {
                             case VAL:
                                 parameterToModify = Parameter.SAT;
                                 break;
-                            case POS:
+                            case EYEDROPPER:
                                 parameterToModify = Parameter.VAL;
+                                break;
+                            case POS:
+                                parameterToModify = Parameter.EYEDROPPER;
                                 break;
                         }
                     }
@@ -131,7 +138,7 @@ public class Configure extends LinearOpMode {
                 canSwitch = !gamepad1.dpad_left && !gamepad1.dpad_right;
             }
 
-            // Modify parameters with sticks
+            // Modify parameters
             {
                 switch(parameterToModify){
                     case HUE:
@@ -145,6 +152,26 @@ public class Configure extends LinearOpMode {
                     case VAL:
                         elementDetectionPipeline.minVal -= MODIFY_SPEED*gamepad1.left_stick_y;
                         elementDetectionPipeline.maxVal -= MODIFY_SPEED*gamepad1.right_stick_y;
+                        break;
+                    case EYEDROPPER:
+                        elementDetectionPipeline.readX += MOVE_SPEED*gamepad1.left_stick_x;
+                        elementDetectionPipeline.readY += MOVE_SPEED*gamepad1.left_stick_y;
+                        if(gamepad1.a){
+                            elementDetectionPipeline.minHue = Math.min(elementDetectionPipeline.readHue - 8, elementDetectionPipeline.minHue);
+                            elementDetectionPipeline.maxHue = Math.max(elementDetectionPipeline.readHue + 8, elementDetectionPipeline.maxHue);
+                            elementDetectionPipeline.minSat = Math.min(elementDetectionPipeline.readSat - 8, elementDetectionPipeline.minSat);
+                            elementDetectionPipeline.maxSat = Math.max(elementDetectionPipeline.readSat + 8, elementDetectionPipeline.maxSat);
+                            elementDetectionPipeline.minVal = Math.min(elementDetectionPipeline.readVal - 8, elementDetectionPipeline.minVal);
+                            elementDetectionPipeline.maxVal = Math.max(elementDetectionPipeline.readVal + 8, elementDetectionPipeline.maxVal);
+                        }
+                        if(gamepad1.b){
+                            elementDetectionPipeline.minHue = elementDetectionPipeline.readHue - 8;
+                            elementDetectionPipeline.maxHue = elementDetectionPipeline.readHue + 8;
+                            elementDetectionPipeline.minSat = elementDetectionPipeline.readSat - 8;
+                            elementDetectionPipeline.maxSat = elementDetectionPipeline.readSat + 8;
+                            elementDetectionPipeline.minVal = elementDetectionPipeline.readVal - 8;
+                            elementDetectionPipeline.maxVal = elementDetectionPipeline.readVal + 8;
+                        }
                         break;
                     case POS:
                         elementDetectionPipeline.xStart += MOVE_SPEED*gamepad1.left_stick_x;
@@ -165,10 +192,9 @@ public class Configure extends LinearOpMode {
                 dashboardTelemetry.addData("satMax", elementDetectionPipeline.maxSat);
                 dashboardTelemetry.addData("valMin", elementDetectionPipeline.minVal);
                 dashboardTelemetry.addData("valMax", elementDetectionPipeline.maxVal);
-                dashboardTelemetry.addData("startX", elementDetectionPipeline.xStart);
-                dashboardTelemetry.addData("startY", elementDetectionPipeline.yStart);
-                dashboardTelemetry.addData("endX", elementDetectionPipeline.xEnd);
-                dashboardTelemetry.addData("endY", elementDetectionPipeline.yEnd);
+                dashboardTelemetry.addData("readHue", elementDetectionPipeline.readHue);
+                dashboardTelemetry.addData("readSat", elementDetectionPipeline.readSat);
+                dashboardTelemetry.addData("readVal", elementDetectionPipeline.readVal);
                 dashboardTelemetry.update();
             }
 
