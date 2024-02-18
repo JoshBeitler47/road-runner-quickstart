@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,31 +15,19 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionParameters;
 import org.firstinspires.ftc.teamcode.tuning.MecanumDrive;
-import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Alliance;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Side;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Park;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 @Config
-@TeleOp(name="Autonomous", group="Linear Opmode")
+@TeleOp(name="AAutonomous", group="Linear Opmode")
 
 //Intake Pixel goes closer to truss
-//Outtake pixel is on right side
+//Outtake pixel is on right side (left facing us)
 
 public final class MainAuto extends LinearOpMode {
     public static Side start = Side.AUDIENCE;
@@ -82,7 +69,7 @@ public final class MainAuto extends LinearOpMode {
     public int reflect;
     public boolean tooClose = false;
 
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WHEN STARTING
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p, i, d);
         controller2 = new PIDController(p2, i2, d2);
@@ -90,18 +77,18 @@ public final class MainAuto extends LinearOpMode {
         setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
-        double xOffset = -6;
-        double yOffset = 4;
-        double outtakeOffset = 2;
+        double xOffset = 0;
+        double yOffset = 0;
+        double outtakeOffset = 2.25;
+        double outtakeOff2 = 0;
         int LCRNUM = 0;
         visionHandler = new VisionHandler();
         ConfigDashboard();
         gamepadSetValues();
-        visionHandler.init(hardwareMap);
-
+        //visionHandler.init(hardwareMap);
         waitForStart();
 
-        lookForTeamElement();
+        //lookForTeamElement();
 //Set Reflect and things
         {
             // Red is 1, Blue is -1
@@ -121,26 +108,28 @@ public final class MainAuto extends LinearOpMode {
                 case RIGHT:
                     LCRNUM = 1 * reflect;
                     break;
-            }
+            } //On Red side, left is -1. On blue side, right is -1
         }
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        outtake_wrist.setPosition(.43);
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! START MOVING
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             {
                 startingPose = new Pose2d(12 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
-                    case -1:
-                        if (reflect == 1){
-                            tooClose = true;
-                            tooCloseRedBack();
-                        } else {
-                            nextPose = new Pose2d(2 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                            Actions.runBlocking(
-                                    drive.actionBuilder(drive.pose)
-                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                            .build());
-                        }
+                    case -1: //TooClose
+                        tooClose = true;
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineTo(new Vector2d(22, -36*reflect), Math.PI)
+                                        .lineToX(2)
+                                        .build());
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .setReversed(true)
+                                        .lineToX(40)
+                                        .setReversed(false)
+                                        .build());
+
                         break;
                     case 0:
                         nextPose = new Pose2d(12 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
@@ -150,18 +139,13 @@ public final class MainAuto extends LinearOpMode {
                                         .build());
                         break;
                     case 1:
-                        if (reflect == -1){
-                            tooClose = true;
-                            tooCloseBlueBack();
-                        } else {
-                            nextPose = new Pose2d(22 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                            Actions.runBlocking(
-                                    drive.actionBuilder(drive.pose)
-                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                            .build());
-                        }
-                        break;
+                        nextPose = new Pose2d(22 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
 
+                        break;
                 }
             }
         } else {                                          //AudienceSide
@@ -170,16 +154,11 @@ public final class MainAuto extends LinearOpMode {
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
-                        if (reflect == -1){
-                            tooClose = true;
-                            tooCloseBlueAudience();
-                        } else {
-                            nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                            Actions.runBlocking(
-                                    drive.actionBuilder(drive.pose)
-                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                            .build());
-                        }
+                        nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineToConstantHeading(nextPose.position, nextPose.heading)
+                                        .build());
                         break;
                     case 0:
                         nextPose = new Pose2d(-36 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
@@ -189,31 +168,30 @@ public final class MainAuto extends LinearOpMode {
                                         .build());
                         break;
                     case 1:
-                        if (reflect == 1){
-                            tooClose = true;
-                            tooCloseRedAudience();
-                        } else {
-                            nextPose = new Pose2d(-26 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
-                            Actions.runBlocking(
-                                    drive.actionBuilder(drive.pose)
-                                            .splineToConstantHeading(nextPose.position, nextPose.heading)
-                                            .build());
-                        }
+                        tooClose = true;
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .splineTo(new Vector2d(-46, -36*reflect), Math.PI)
+                                        .lineToX(-26)
+                                        .turnTo(Math.toRadians(180))
+                                        .build());
+                        Actions.runBlocking(
+                                drive.actionBuilder(drive.pose)
+                                        .setReversed(true)
+                                        .lineToX(40)
+                                        .setReversed(false)
+                                        .build());
                         break;
                 }
             }
-            while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
-            {
-                SetIntakePIDTarget(-20);
-            }
         }
-                                        //Go To Backboard!!
-        if (tooClose == true){
+        //Go To Backboard!!
+        if (!tooClose){
             if (start.equals(Side.BACKSTAGE)) {
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
                                 .turnTo(Math.toRadians(90 * reflect))
-                                .lineToY(-60 * reflect)
+                                .lineToY(-58 * reflect)
                                 .build());
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -225,7 +203,7 @@ public final class MainAuto extends LinearOpMode {
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
                                 .turnTo(Math.toRadians(90 * reflect))
-                                .lineToY(-60 * reflect)
+                                .lineToY(-58 * reflect)
                                 .build());
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -240,43 +218,51 @@ public final class MainAuto extends LinearOpMode {
                             .turnTo(Math.toRadians(180))
                             .build());
         }
+
         switch (LCRNUM){
             case -1:
+                if (color.equals(Alliance.RED)){
+                    outtakeOff2 = -3;
+                }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(40, (-30*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(45, ((-30*reflect)+outtakeOffset)+outtakeOff2), 0)
                                 .build());
                 break;
             case 0:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(40, (-36*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset), 0)
                                 .build());
                 break;
             case 1:
+                if (color.equals(Alliance.BLUE)){
+                    outtakeOff2 = -3;
+                }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(40, (-42*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(45, ((-42*reflect)+outtakeOffset)+outtakeOff2), 0)
                                 .build());
                 break;
         }
-        outtake_wrist.setPosition(.13);
-        while (outtake_elbow.getCurrentPosition() < 2300 && !isStopRequested())
+        outtake_wrist.setPosition(1);
+        while (outtake_elbow.getCurrentPosition() < 1300 && !isStopRequested())
         {
-            SetOuttakePIDTarget(2500);
+            SetOuttakePIDTarget(1500);
         }
         outtake_elbow.setPower(0);
         outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToX(48)
+                        .lineToX(51)
                         .build());
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToX(40)
+                        .lineToX(45)
                         .build());
+        outtake_wrist.setPosition(.38);
         while (outtake_elbow.getCurrentPosition() > 10 && !isStopRequested())
         {
             SetOuttakePIDTarget(0);
@@ -286,14 +272,14 @@ public final class MainAuto extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .splineToConstantHeading(new Vector2d(48, -64*reflect), 0)
+                        .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
                         .build());
-        while (intake_elbow.getCurrentPosition() < 25)
-        {
-            SetIntakePIDTarget(30);
-        }
+//        while (intake_elbow.getCurrentPosition() < 25)
+//        {
+//            SetIntakePIDTarget(30);
+//        }
     }
-
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE
     private void lookForTeamElement() throws InterruptedException {
         if(color.equals(Alliance.RED)){
             visionHandler.setRed();
@@ -309,7 +295,7 @@ public final class MainAuto extends LinearOpMode {
         if(mid >= left)
             lcr = Spike.CENTER;
         //if(left <= 0.5 && mid <= 0.5)
-          //  lcr = Spike.RIGHT;
+        //  lcr = Spike.RIGHT;
     }
 
     private void gamepadSetValues() {
@@ -442,53 +428,5 @@ public final class MainAuto extends LinearOpMode {
 
         intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
-    private void tooCloseRedBack(){
-        Actions.runBlocking(
-                drive.actionBuilder(drive.pose)
-                        .splineTo(new Vector2d(22, -30), Math.PI)
-                        .lineToX(2)
-                        .strafeToConstantHeading(new Vector2d(2, -36))
-                        .turnTo(Math.toRadians(180)) //Maybe unneccesary
-                        .setReversed(true)
-                        .lineToX(40)
-                        .setReversed(false)
-                        .build());
-    }
-    private void tooCloseBlueBack(){
-        Actions.runBlocking(
-                drive.actionBuilder(drive.pose)
-                        .splineTo(new Vector2d(22, 30), Math.PI)
-                        .lineToX(2)
-                        .strafeToConstantHeading(new Vector2d(2, 36))
-                        .turnTo(Math.toRadians(180))
-                        .setReversed(true)
-                        .lineToX(40)
-                        .setReversed(false)
-                        .build());
-    }
-    private void tooCloseRedAudience(){
-        Actions.runBlocking(
-                drive.actionBuilder(drive.pose)
-                        .splineTo(new Vector2d(-46, -30), Math.PI)
-                        .lineToX(-26)
-                        .strafeToConstantHeading(new Vector2d(-26, -36))
-                        .turnTo(Math.toRadians(180))
-                        .setReversed(true)
-                        .lineToX(40)
-                        .setReversed(false)
-                        .build());
-    }
-    private void tooCloseBlueAudience(){
-        Actions.runBlocking(
-                drive.actionBuilder(drive.pose)
-                        .splineTo(new Vector2d(-46, 30), Math.PI)
-                        .lineToX(-26)
-                        .strafeToConstantHeading(new Vector2d(-26, 36))
-                        .turnTo(Math.toRadians(180))
-                        .setReversed(true)
-                        .lineToX(40)
-                        .setReversed(false)
-                        .build());
     }
 }

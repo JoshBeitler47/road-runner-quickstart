@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision;
+package org.firstinspires.ftc.teamcode.MainCode.Autonomous;
 
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -8,40 +8,28 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionParameters;
 import org.firstinspires.ftc.teamcode.tuning.MecanumDrive;
-import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Alliance;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Side;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Park;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 @Config
-@TeleOp(name="AutoTest", group="Linear Opmode")
+@TeleOp(name="OldAutonomous", group="Linear Opmode")
 
 //Intake Pixel goes closer to truss
 //Outtake pixel is on right side
 
-public final class AutoTest extends LinearOpMode {
+public final class OldAuto extends LinearOpMode {
     public static Side start = Side.AUDIENCE;
     public static Spike lcr;
     public static Alliance color = Alliance.RED;
@@ -58,15 +46,24 @@ public final class AutoTest extends LinearOpMode {
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
 
 
+    //First PID
     private PIDController controller;
     public static double p = 0.02, i = 0, d = 0.0002;
-    public static double p2 = 0.02, i2 = 0, d2 = 0.0002;
     public static double f = -0.15;
     private final double ticks_in_degree = 144.0 / 180.0;
-    private final double ticks_in_degree2 = 144.0 / 180.0;
     public static double offset = -25;
     int armPos;
-    double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower, outtakeArmPower;
+    double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower;
+
+    //Second PID
+    private PIDController controller2;
+    public static double p2 = 0.02, i2 = 0, d2 = 0.0002;
+    public static double f2 = 0;
+    private final double ticks_in_degree2 = 144.0 / 180.0;
+    int armPos2;
+    double pid2, targetArmAngle2, ff2, currentArmAngle2, outtakeArmPower;
+
+    private ElapsedTime runtime = new ElapsedTime();
 
     public MecanumDrive drive;
     public int reflect;
@@ -75,22 +72,23 @@ public final class AutoTest extends LinearOpMode {
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p, i, d);
+        controller2 = new PIDController(p2, i2, d2);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
-        double xOffset = 3;
-        double yOffset = -5;
+        double xOffset = -6;
+        double yOffset = 4;
         double outtakeOffset = 2;
         int LCRNUM = 0;
         visionHandler = new VisionHandler();
         ConfigDashboard();
         gamepadSetValues();
-        //visionHandler.init(hardwareMap);
+        visionHandler.init(hardwareMap);
 
         waitForStart();
 
-        //lookForTeamElement();
+        lookForTeamElement();
 //Set Reflect and things
         {
             // Red is 1, Blue is -1
@@ -99,11 +97,7 @@ public final class AutoTest extends LinearOpMode {
             } else {
                 reflect = -1;
             }
-            xOffset *= reflect;
             yOffset *= reflect;
-            if (start == Side.BACKSTAGE) {
-                xOffset *= -1;
-            }
             switch (lcr) {
                 case LEFT:
                     LCRNUM = -1 * reflect;
@@ -117,11 +111,7 @@ public final class AutoTest extends LinearOpMode {
             }
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //Unfold();
-//        while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
-//        {
-//            SetIntakePIDTarget(-20);
-//        }
+        outtake_wrist.setPosition(.43);
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             {
                 startingPose = new Pose2d(12 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
@@ -199,13 +189,13 @@ public final class AutoTest extends LinearOpMode {
                         break;
                 }
             }
-//            while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
-//            {
-//                SetIntakePIDTarget(-20);
-//            }
+            while (intake_elbow.getCurrentPosition() > -18 && !isStopRequested())
+            {
+                SetIntakePIDTarget(-20);
+            }
         }
-        //Go To Backboard!!
-        if (tooClose == true){
+                                        //Go To Backboard!!
+        if (!tooClose){
             if (start.equals(Side.BACKSTAGE)) {
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -241,46 +231,54 @@ public final class AutoTest extends LinearOpMode {
             case -1:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-30*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(40, (-30*reflect)+outtakeOffset), 0)
                                 .build());
                 break;
             case 0:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(40, (-36*reflect)+outtakeOffset), 0)
                                 .build());
                 break;
             case 1:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-42*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(40, (-42*reflect)+outtakeOffset), 0)
                                 .build());
                 break;
         }
-//        while (outtake_elbow.getCurrentPosition() < 2300 && !isStopRequested())
-//        {
-//            SetOuttakePIDTarget(2500);
-//        }
+        outtake_wrist.setPosition(.13);
+        while (outtake_elbow.getCurrentPosition() < 2300 && !isStopRequested())
+        {
+            SetOuttakePIDTarget(2500);
+        }
+        outtake_elbow.setPower(0);
+        outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToX(50)
+                        .lineToX(48)
                         .build());
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToX(45)
+                        .lineToX(40)
                         .build());
-//        while (outtake_elbow.getCurrentPosition() > 50 && !isStopRequested())
-//        {
-//            SetOuttakePIDTarget(0);
-//        }
+        while (outtake_elbow.getCurrentPosition() > 10 && !isStopRequested())
+        {
+            SetOuttakePIDTarget(0);
+        }
+        outtake_elbow.setPower(0);
         if(park == Park.CORNER);
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
+                        .splineToConstantHeading(new Vector2d(48, -64*reflect), 0)
                         .build());
+        while (intake_elbow.getCurrentPosition() < 25)
+        {
+            SetIntakePIDTarget(30);
+        }
     }
 
     private void lookForTeamElement() throws InterruptedException {
@@ -293,12 +291,12 @@ public final class AutoTest extends LinearOpMode {
         double left = visionHandler.read();
         visionHandler.setMiddle();
         double mid = visionHandler.read();
-        if(left >= mid && left >= 0.5)
+        if(left >= mid)
             lcr = Spike.LEFT;
-        if(mid >= left && mid >= 0.5)
+        if(mid >= left)
             lcr = Spike.CENTER;
-        if(left <= 0.5 && mid <= 0.5)
-            lcr = Spike.RIGHT;
+        //if(left <= 0.5 && mid <= 0.5)
+          //  lcr = Spike.RIGHT;
     }
 
     private void gamepadSetValues() {
@@ -407,22 +405,30 @@ public final class AutoTest extends LinearOpMode {
         intake_elbow.setPower(intakeArmPower);
         hang_arm.setPower(intakeArmPower);
     }
-    private void SetOuttakePIDTarget(int target)
+    private void SetOuttakePIDTarget(int target2)
     {
-        controller.setPID(p2, i2, d2);
-        armPos = outtake_elbow.getCurrentPosition();
-        pid = controller.calculate(armPos, target);
-        targetArmAngle = Math.toRadians((target) / ticks_in_degree2);
-        ff = Math.cos(targetArmAngle) * f;
-        currentArmAngle = Math.toRadians((armPos) / ticks_in_degree2);
+        controller2.setPID(p2, i2, d2);
+        armPos2 = outtake_elbow.getCurrentPosition();
+        pid2 = controller2.calculate(armPos2, target2);
+        targetArmAngle2 = Math.toRadians((target2) / ticks_in_degree2);
+        ff2 = Math.cos(targetArmAngle2) * f2;
+        currentArmAngle2 = Math.toRadians((armPos2) / ticks_in_degree2);
 
-        outtakeArmPower = pid + ff;
+        outtakeArmPower = pid2; // + ff2;
 
         outtake_elbow.setPower(outtakeArmPower);
     }
     private void Unfold()
     {
-        //Find motor positions at unfold levels
+        while (intake_elbow.getCurrentPosition() < 90)
+        {
+            SetIntakePIDTarget(100);
+        }
+        right_intake.setPosition(.857);
+        outtake_wrist.setPosition(.43);
+
+        intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     private void tooCloseRedBack(){
         Actions.runBlocking(
