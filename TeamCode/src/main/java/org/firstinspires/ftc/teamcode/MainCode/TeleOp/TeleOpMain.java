@@ -16,13 +16,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.acmerobotics.dashboard.FtcDashboard;
 
-/*Buttons
-Left and right sticks to drive (Robot is field centric)
-options button to reset gyro
-left bumper tp toggle forward intake grabber, right bumper to toggle backwards
-a to initiate transfer
-b to reset transfer
- */
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="MainTeleOp", group="Linear Opmode")
 @Config
 public class TeleOpMain extends LinearOpMode {
@@ -30,12 +23,15 @@ public class TeleOpMain extends LinearOpMode {
     DcMotorEx intake_elbow, outtake_elbow, hang_arm;
     DcMotor front_left, back_left, front_right, back_right, intake_grabber;
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
-    public static double intakeServoStart = .857;
-    public static double outtakeServoDrop = .5;
-    public static double intakeServoTransfer = .985;
+    public static double intakeServoStart = .6;
+    public static double intakeOffsetPos = .55;
+    public static double outtakeServoDrop = .9;
+    public static double middlePosOuttake = .5;
+    public static double intakeServoTransfer = .725;
     public static double outtakeServoTransfer = 0.38;
     public static int intakeMotorTransfer1 = -80;
     public static int intakeMotorTransfer2 = -121;
+    public static int yToggleVal = -25;
     public static double speedVar = 1;
     public static int resetVar1 = -90;
     public static int resetVar2 = -40;
@@ -68,7 +64,7 @@ public class TeleOpMain extends LinearOpMode {
         FIX_RESET
     };
     FixState fixState = FixState.FIX_START;
-    public boolean glideMode = false, slowMode = false, yToggle = false, isFieldCentric = false;
+    public boolean glideMode = false, slowMode = false, yToggle = false, xToggle = false, isFieldCentric = false;
     public boolean startReset = false, isSpintakeManual = true;
 
     //First PID
@@ -110,6 +106,7 @@ public class TeleOpMain extends LinearOpMode {
 
         runtime.reset();
         target = 0;
+        right_intake.setPosition(intakeServoStart);
 
         waitForStart();
 
@@ -122,7 +119,7 @@ public class TeleOpMain extends LinearOpMode {
             //Finite State Machine - Reset
             switch (resetState) {
                 case RESET_START:
-                    if (startReset) {
+                    if (startReset || gamepad1.b) {
                         glideMode = false;
                         target = resetVar1;
                         runtime.reset();
@@ -147,7 +144,7 @@ public class TeleOpMain extends LinearOpMode {
                     }
                     break;
                 case RESET_END:
-                    if (runtime.seconds() >= .4) {
+                    if (runtime.seconds() >= .6) {
 
                         runtime.reset();
                         glideMode = true;
@@ -157,7 +154,7 @@ public class TeleOpMain extends LinearOpMode {
                     }
                     break;
                 case RESET_RESET1:
-                    if (runtime.seconds() >= .5)
+                    if (runtime.seconds() >= .6)
                     {
                         intake_elbow.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
                         runtime.reset();
@@ -165,7 +162,7 @@ public class TeleOpMain extends LinearOpMode {
                     }
                     break;
                 case RESET_RESET2:
-                    if (runtime.seconds() >= .05)
+                    if (runtime.seconds() >= .1)
                     {
                         intake_elbow.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -232,7 +229,7 @@ public class TeleOpMain extends LinearOpMode {
                 case INIT_END:
                     if (runtime.seconds() >= .4)
                     {
-                        outtake_wrist.setPosition(outtakeServoDrop);
+                        outtake_wrist.setPosition(middlePosOuttake);
                         runtime.reset();
                         initState = InitState.INIT_START;
                     }
@@ -295,24 +292,18 @@ public class TeleOpMain extends LinearOpMode {
             {
                 drone_launcher.setPosition(-.4);
             }
-            if (currentGamepad1.x && !previousGamepad1.x) {
-                   if (gamepad1.right_trigger >= .25)
-                   {
-                       glideMode = false;
-                       target = 90;
-                       intake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                   }
-                   else if (gamepad1.left_trigger >= .25)
-                   {
-                       right_intake.setPosition(intakeServoStart);
-                       intake_elbow.setPower(0);
-                   }
-                   else
-                   {
-                       intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                       target = 0;
-                       intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                   }
+            if (currentGamepad1.x && !previousGamepad1.x)
+            {
+                if (!xToggle)
+                {
+                    xToggle = true;
+                    right_intake.setPosition(intakeOffsetPos);
+                }
+                else
+                {
+                    xToggle = false;
+                    right_intake.setPosition(intakeServoStart);
+                }
             }
             if (currentGamepad1.y && !previousGamepad1.y)
             {
@@ -320,7 +311,7 @@ public class TeleOpMain extends LinearOpMode {
                 if (!yToggle)
                 {
                     yToggle = true;
-                    target -= 20;
+                    target = yToggleVal;
                 }
                 else
                 {
@@ -341,7 +332,7 @@ public class TeleOpMain extends LinearOpMode {
                 else
                 {
                     slowMode = true;
-                    speedVar = .6;
+                    speedVar = .5;
                 }
             }
 

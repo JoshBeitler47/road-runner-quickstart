@@ -433,15 +433,7 @@ public final class MainAuto extends LinearOpMode {
     }
     private void Unfold()
     {
-        while (intake_elbow.getCurrentPosition() < 90)
-        {
-            SetIntakePIDTarget(100);
-        }
-        right_intake.setPosition(.857);
-        outtake_wrist.setPosition(.43);
 
-        intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     private void tooCloseRedBack(){
         Actions.runBlocking(
