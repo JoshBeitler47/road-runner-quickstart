@@ -87,10 +87,9 @@ public final class MainAuto extends LinearOpMode {
         visionHandler = new VisionHandler();
         ConfigDashboard();
         gamepadSetValues();
-        //visionHandler.init(hardwareMap);
+        visionHandler.init(hardwareMap);
         waitForStart();
-
-        //lookForTeamElement();
+        lookForTeamElement();
 //Set Reflect and things
         {
             // Red is 1, Blue is -1
@@ -210,7 +209,7 @@ public final class MainAuto extends LinearOpMode {
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
                                 .turnTo(Math.toRadians(90 * reflect))
-                                .lineToY(-58 * reflect)
+                                .lineToY(-60 * reflect)
                                 .build());
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -241,7 +240,7 @@ public final class MainAuto extends LinearOpMode {
             case 0:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset), 0)
+                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset-1.5), 0)
                                 .build());
                 break;
             case 1:
@@ -279,11 +278,17 @@ public final class MainAuto extends LinearOpMode {
             SetOuttakePIDTarget(0);
         }
         outtake_elbow.setPower(0);
+
         if (park.equals(Park.CORNER)){
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
                         .build());
+        } else {
+            Actions.runBlocking(
+                    drive.actionBuilder(drive.pose)
+                            .splineToConstantHeading(new Vector2d(50, -12*reflect), 0)
+                            .build());
         }
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE
@@ -297,11 +302,11 @@ public final class MainAuto extends LinearOpMode {
         double left = visionHandler.read();
         visionHandler.setMiddle();
         double mid = visionHandler.read();
-        if(left >= mid)
+        if((left > mid) && (left >= 0.25))
             lcr = Spike.LEFT;
-        if(mid >= left)
+        if((mid > left) && (mid >= 0.25))
             lcr = Spike.CENTER;
-        if(left <= 0.5 && mid <= 0.5)
+        if((left < 0.25) && (mid < 0.25))
           lcr = Spike.RIGHT;
     }
 
