@@ -113,6 +113,10 @@ public final class MainAuto extends LinearOpMode {
             } //On Red side, left is -1. On blue side, right is -1
         }
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! START MOVING
+
+
+
+
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             {
                 if (color.equals(Alliance.RED)){
@@ -126,7 +130,7 @@ public final class MainAuto extends LinearOpMode {
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineTo(new Vector2d(22, -36*reflect), Math.PI)
-                                        .lineToX(2)
+                                        .lineToX(0)
                                         .lineToXConstantHeading(40)
                                         .build());
                         break;
@@ -180,7 +184,7 @@ public final class MainAuto extends LinearOpMode {
                                         .build());
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
-                                        .splineToConstantHeading(new Vector2d(-43, -60*reflect), Math.toRadians(180))
+                                        .splineToConstantHeading(new Vector2d(-43, -61*reflect), Math.toRadians(180))
                                         .lineToX(30)
                                         .splineTo(new Vector2d(35, -36*reflect), Math.toRadians(180))
                                         .build());
@@ -194,7 +198,7 @@ public final class MainAuto extends LinearOpMode {
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
                                 .turnTo(Math.toRadians(90 * reflect))
-                                .lineToY(-58 * reflect)
+                                .lineToY(-59 * reflect)
                                 .build());
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -225,7 +229,7 @@ public final class MainAuto extends LinearOpMode {
         switch (LCRNUM){
             case -1:
                 if (color.equals(Alliance.RED)){
-                    outtakeOff2 = -3;
+                    outtakeOff2 = -1;
                 } else {
                     outtakeOff2 = -2;
                 }
@@ -253,9 +257,9 @@ public final class MainAuto extends LinearOpMode {
                 break;
         }
         outtake_wrist.setPosition(.9);
-        while (outtake_elbow.getCurrentPosition() < 600 && !isStopRequested())
+        while (outtake_elbow.getCurrentPosition() < 700 && !isStopRequested())
         {
-            SetOuttakePIDTarget(800);
+            SetOuttakePIDTarget(900);
         }
         outtake_elbow.setPower(0);
         outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -278,7 +282,6 @@ public final class MainAuto extends LinearOpMode {
         if (park.equals(Park.CORNER)){
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
-                        .turnTo(Math.toRadians(180))
                         .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
                         .build());
         }
