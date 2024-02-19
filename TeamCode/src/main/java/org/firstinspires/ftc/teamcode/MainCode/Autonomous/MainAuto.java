@@ -30,9 +30,9 @@ import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Park;
 //Outtake pixel is on right side (left facing us)
 
 public final class MainAuto extends LinearOpMode {
-    public static Side start = Side.AUDIENCE;
+    public static Side start = Side.BACKSTAGE;
     public static Spike lcr;
-    public static Alliance color = Alliance.RED;
+    public static Alliance color = Alliance.BLUE;
     public static Park park = Park.CORNER;
 
     //for dashboard
@@ -77,7 +77,7 @@ public final class MainAuto extends LinearOpMode {
         setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
-        double xOffset = 0;
+        double xOffset = 3.25;
         double yOffset = 0;
         double outtakeOffset = 2.25;
         double outtakeOff2 = 0;
@@ -122,17 +122,11 @@ public final class MainAuto extends LinearOpMode {
                                 drive.actionBuilder(drive.pose)
                                         .splineTo(new Vector2d(22, -36*reflect), Math.PI)
                                         .lineToX(2)
+                                        .lineToXConstantHeading(40)
                                         .build());
-                        Actions.runBlocking(
-                                drive.actionBuilder(drive.pose)
-                                        .setReversed(true)
-                                        .lineToX(40)
-                                        .setReversed(false)
-                                        .build());
-
                         break;
                     case 0:
-                        nextPose = new Pose2d(12 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        nextPose = new Pose2d(12, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineToConstantHeading(nextPose.position, nextPose.heading)
@@ -150,7 +144,7 @@ public final class MainAuto extends LinearOpMode {
             }
         } else {                                          //AudienceSide
             {
-                startingPose = new Pose2d(-36 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
+                startingPose = new Pose2d(-38 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
@@ -161,7 +155,7 @@ public final class MainAuto extends LinearOpMode {
                                         .build());
                         break;
                     case 0:
-                        nextPose = new Pose2d(-36 + xOffset, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        nextPose = new Pose2d(-36, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineToConstantHeading(nextPose.position, nextPose.heading)
@@ -171,15 +165,15 @@ public final class MainAuto extends LinearOpMode {
                         tooClose = true;
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
-                                        .splineTo(new Vector2d(-46, -36*reflect), Math.PI)
-                                        .lineToX(-26)
-                                        .turnTo(Math.toRadians(180))
+                                        .splineTo(new Vector2d(-46, -36*reflect), Math.toRadians(0))
+                                        .lineToX(-25)
+                                        .lineToX(-43)
                                         .build());
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
-                                        .setReversed(true)
-                                        .lineToX(40)
-                                        .setReversed(false)
+                                        .splineToConstantHeading(new Vector2d(-43, -60*reflect), Math.toRadians(180))
+                                        .lineToX(30)
+                                        .splineTo(new Vector2d(35, -36*reflect), Math.toRadians(180))
                                         .build());
                         break;
                 }
@@ -223,6 +217,8 @@ public final class MainAuto extends LinearOpMode {
             case -1:
                 if (color.equals(Alliance.RED)){
                     outtakeOff2 = -3;
+                } else {
+                    outtakeOff2 = -2;
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -238,6 +234,8 @@ public final class MainAuto extends LinearOpMode {
             case 1:
                 if (color.equals(Alliance.BLUE)){
                     outtakeOff2 = -3;
+                } else {
+                    outtakeOff2 = -2;
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -245,22 +243,22 @@ public final class MainAuto extends LinearOpMode {
                                 .build());
                 break;
         }
-        outtake_wrist.setPosition(1);
-        while (outtake_elbow.getCurrentPosition() < 1300 && !isStopRequested())
+        outtake_wrist.setPosition(.9);
+        while (outtake_elbow.getCurrentPosition() < 600 && !isStopRequested())
         {
-            SetOuttakePIDTarget(1500);
+            SetOuttakePIDTarget(800);
         }
         outtake_elbow.setPower(0);
         outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
-                        .turnTo(Math.toRadians(180))
-                        .lineToX(51)
+                        .turnTo(Math.toRadians(175))
+                        .lineToXConstantHeading(56)
                         .build());
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToX(45)
+                        .lineToXConstantHeading(44)
                         .build());
         outtake_wrist.setPosition(.38);
         while (outtake_elbow.getCurrentPosition() > 10 && !isStopRequested())
@@ -268,16 +266,13 @@ public final class MainAuto extends LinearOpMode {
             SetOuttakePIDTarget(0);
         }
         outtake_elbow.setPower(0);
-        if(park == Park.CORNER);
+        if (park.equals(Park.CORNER)){
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
                         .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
                         .build());
-//        while (intake_elbow.getCurrentPosition() < 25)
-//        {
-//            SetIntakePIDTarget(30);
-//        }
+        }
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE
     private void lookForTeamElement() throws InterruptedException {
@@ -294,8 +289,8 @@ public final class MainAuto extends LinearOpMode {
             lcr = Spike.LEFT;
         if(mid >= left)
             lcr = Spike.CENTER;
-        //if(left <= 0.5 && mid <= 0.5)
-        //  lcr = Spike.RIGHT;
+        if(left <= 0.5 && mid <= 0.5)
+          lcr = Spike.RIGHT;
     }
 
     private void gamepadSetValues() {
