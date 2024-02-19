@@ -81,6 +81,8 @@ public final class MainAuto extends LinearOpMode {
         double yOffset = 0;
         double outtakeOffset = 2.25;
         double outtakeOff2 = 0;
+        double tooCloseDrift = 0;
+        double tooCloseStartOff = 0;
         int LCRNUM = 0;
         visionHandler = new VisionHandler();
         ConfigDashboard();
@@ -113,7 +115,10 @@ public final class MainAuto extends LinearOpMode {
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! START MOVING
         if (start.equals(Side.BACKSTAGE)){      //BackstageSide
             {
-                startingPose = new Pose2d(12 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
+                if (color.equals(Alliance.RED)){
+                    tooCloseStartOff = 2;
+                }
+                startingPose = new Pose2d((12+tooCloseStartOff) - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1: //TooClose
@@ -144,7 +149,10 @@ public final class MainAuto extends LinearOpMode {
             }
         } else {                                          //AudienceSide
             {
-                startingPose = new Pose2d(-38 - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
+                if (color.equals(Alliance.BLUE)){
+                 tooCloseStartOff = -2;
+                }
+                startingPose = new Pose2d((-36 - tooCloseStartOff) - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
@@ -163,6 +171,7 @@ public final class MainAuto extends LinearOpMode {
                         break;
                     case 1:
                         tooClose = true;
+                        tooCloseDrift = 2;
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineTo(new Vector2d(-46, -36*reflect), Math.toRadians(0))
@@ -239,7 +248,7 @@ public final class MainAuto extends LinearOpMode {
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, ((-42*reflect)+outtakeOffset)+outtakeOff2), 0)
+                                .splineToConstantHeading(new Vector2d(45, ((-42*reflect)+outtakeOffset)+outtakeOff2+tooCloseDrift), Math.toRadians(0))
                                 .build());
                 break;
         }
