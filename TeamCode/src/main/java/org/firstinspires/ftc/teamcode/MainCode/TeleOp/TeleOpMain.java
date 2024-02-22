@@ -274,12 +274,12 @@ public class TeleOpMain extends LinearOpMode {
             }*/
 
             if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
-                //AdjustDown();
-                right_intake.setPosition(intakeServoStart);
+                AdjustDown();
+                //right_intake.setPosition(intakeServoStart);
             }
             if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-                //AdjustUp();
-                right_intake.setPosition(intakeServoTransfer);
+                AdjustUp();
+                //right_intake.setPosition(intakeServoTransfer);
             }
             if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
                 outtake_wrist.setPosition(outtakeServoDrop);
