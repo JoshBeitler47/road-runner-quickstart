@@ -195,6 +195,10 @@ public class Configure extends LinearOpMode {
                 dashboardTelemetry.addData("readHue", elementDetectionPipeline.readHue);
                 dashboardTelemetry.addData("readSat", elementDetectionPipeline.readSat);
                 dashboardTelemetry.addData("readVal", elementDetectionPipeline.readVal);
+                dashboardTelemetry.addData("xStart", elementDetectionPipeline.xStart);
+                dashboardTelemetry.addData("xEnd", elementDetectionPipeline.xEnd);
+                dashboardTelemetry.addData("yStart", elementDetectionPipeline.yStart);
+                dashboardTelemetry.addData("yEnd", elementDetectionPipeline.yEnd);
                 dashboardTelemetry.update();
             }
 
