@@ -77,7 +77,7 @@ public final class MainAuto extends LinearOpMode {
         setupRobot();
         Pose2d startingPose;
         Pose2d nextPose;
-        double xOffset = 3.25;
+        double xOffset = 1.25;
         double yOffset = 0;
         double outtakeOffset = 2.25;
         double outtakeOff2 = 0;
@@ -159,7 +159,7 @@ public final class MainAuto extends LinearOpMode {
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
-                        nextPose = new Pose2d(-46 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        nextPose = new Pose2d(-47 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineToConstantHeading(nextPose.position, nextPose.heading)
@@ -293,21 +293,23 @@ public final class MainAuto extends LinearOpMode {
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE
     private void lookForTeamElement() throws InterruptedException {
-        if(color.equals(Alliance.RED)){
+        if (color.equals(Alliance.RED)) {
             visionHandler.setRed();
-        }else{
+        } else {
             visionHandler.setBlue();
         }
         visionHandler.setLeft();
         double left = visionHandler.read();
         visionHandler.setMiddle();
         double mid = visionHandler.read();
-        if((left > mid) && (left >= 0.25))
+        if ((left > mid) && (left >= 0.12)) {
             lcr = Spike.LEFT;
-        if((mid > left) && (mid >= 0.25))
+        } else if ((mid > left) && (mid >= 0.12)) {
             lcr = Spike.CENTER;
-        if((left < 0.25) && (mid < 0.25))
-          lcr = Spike.RIGHT;
+        } else {
+         //if((left < 0.25) && (mid < 0.25))
+        lcr = Spike.RIGHT;
+    }
     }
 
     private void gamepadSetValues() {
