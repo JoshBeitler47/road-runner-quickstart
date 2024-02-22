@@ -23,11 +23,11 @@ public class TeleOpMain extends LinearOpMode {
     DcMotorEx intake_elbow, outtake_elbow, hang_arm;
     DcMotor front_left, back_left, front_right, back_right, intake_grabber;
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
-    public static double intakeServoStart = .6;
-    public static double intakeOffsetPos = .55;
+    public static double intakeServoStart = .49;
+    public static double intakeOffsetPos = .45;
     public static double outtakeServoDrop = .9;
     public static double middlePosOuttake = .5;
-    public static double intakeServoTransfer = .725;
+    public static double intakeServoTransfer = .615;
     public static double outtakeServoTransfer = 0.38;
     public static int intakeMotorTransfer1 = -80;
     public static int intakeMotorTransfer2 = -121;
@@ -274,10 +274,12 @@ public class TeleOpMain extends LinearOpMode {
             }*/
 
             if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
-                AdjustDown();
+                //AdjustDown();
+                right_intake.setPosition(intakeServoStart);
             }
             if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-                AdjustUp();
+                //AdjustUp();
+                right_intake.setPosition(intakeServoTransfer);
             }
             if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
                 outtake_wrist.setPosition(outtakeServoDrop);
@@ -291,6 +293,10 @@ public class TeleOpMain extends LinearOpMode {
             if (currentGamepad1.left_stick_button && !previousGamepad1.left_stick_button)
             {
                 drone_launcher.setPosition(-.4);
+            }
+            if (currentGamepad1.right_stick_button && !previousGamepad1.right_stick_button)
+            {
+                drone_launcher.setPosition(0);
             }
             if (currentGamepad1.x && !previousGamepad1.x)
             {
