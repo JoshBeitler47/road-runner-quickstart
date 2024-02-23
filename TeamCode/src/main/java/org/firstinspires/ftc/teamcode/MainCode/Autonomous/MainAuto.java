@@ -89,6 +89,13 @@ public final class MainAuto extends LinearOpMode {
         ConfigDashboard();
         gamepadSetValues();
         visionHandler.init(hardwareMap);
+        while (!visionHandler.ready && !isStopRequested())
+        {
+            telemetry.addData("Camera","NOT READY");
+            telemetry.update();
+        }
+        telemetry.addData("Camera","Ready");
+        telemetry.update();
         waitForStart();
         lookForTeamElement();
 //Set Reflect and things
@@ -304,21 +311,26 @@ public final class MainAuto extends LinearOpMode {
             visionHandler.setBlue();
         }
         visionHandler.setLeft();
-        double left = visionHandler.read();
         visionHandler.setMiddle();
-        double mid = visionHandler.read();
-        if ((left > mid) && (left >= 0.12)) {
-            lcr = Spike.LEFT;
-        } else if ((mid > left) && (mid >= 0.12)) {
-            lcr = Spike.CENTER;
-        } else {
-         //if((left < 0.25) && (mid < 0.25))
-        lcr = Spike.RIGHT;
+        double left=0, mid = 0;
+        this.resetRuntime();
+        while (this.getRuntime() < 3) {
+            left = visionHandler.read();
+            mid = visionHandler.read();
+            if ((left > mid) && (left >= 0.12)) {
+                lcr = Spike.LEFT;
+            } else if ((mid > left) && (mid >= 0.12)) {
+                lcr = Spike.CENTER;
+            } else {
+                //if((left < 0.25) && (mid < 0.25))
+                lcr = Spike.RIGHT;
+            }
+            telemetry.addData("Left%", left);
+            telemetry.addData("Mid%", mid);
+            telemetry.addData("Choice", lcr.name());
+            telemetry.update();
+
         }
-        telemetry.addData("Left%", left);
-        telemetry.addData("Mid%", mid);
-        telemetry.addData("Choice", lcr.name());
-        telemetry.update();
     }
 
     private void gamepadSetValues() {

@@ -10,12 +10,13 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 public class VisionHandler {
     ElementDetectionPipeline pipeline = new ElementDetectionPipeline();
     OpenCvCamera camera;
-    boolean ready = false;
+    public boolean ready = false;
     public void init(HardwareMap hardwareMap){
 
         // I have no clue why this works
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        //camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"));
 
         camera.setPipeline(pipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -63,6 +64,7 @@ public class VisionHandler {
         );
     }
     public double read() throws InterruptedException {
+
         camera.startStreaming(VisionParameters.resX, VisionParameters.resY, OpenCvCameraRotation.UPRIGHT);
         Thread.sleep(VisionParameters.readTime);
         double amt = pipeline.amount;
