@@ -32,8 +32,8 @@ import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Park;
 public final class MainAuto extends LinearOpMode {
     public static Side start = Side.BACKSTAGE;
     public static Spike lcr;
-    public static Alliance color = Alliance.BLUE;
-    public static Park park = Park.CORNER;
+    public static Alliance color = Alliance.RED;
+    public static Park park = Park.STAGE;
 
     //for dashboard
     public static String startValue = "";
@@ -83,6 +83,7 @@ public final class MainAuto extends LinearOpMode {
         double outtakeOff2 = 0;
         double tooCloseDrift = 0;
         double tooCloseStartOff = 0;
+        double newOff2 = 0;
         int LCRNUM = 0;
         visionHandler = new VisionHandler();
         ConfigDashboard();
@@ -129,12 +130,12 @@ public final class MainAuto extends LinearOpMode {
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineTo(new Vector2d(22, -36*reflect), Math.PI)
-                                        .lineToX(0)
+                                        .lineToX(1)
                                         .lineToXConstantHeading(40)
                                         .build());
                         break;
                     case 0:
-                        nextPose = new Pose2d(12, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        nextPose = new Pose2d(10, -25.5 * reflect + yOffset, Math.toRadians(90 * reflect));
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineToConstantHeading(nextPose.position, nextPose.heading)
@@ -153,20 +154,21 @@ public final class MainAuto extends LinearOpMode {
         } else {                                          //AudienceSide
             {
                 if (color.equals(Alliance.BLUE)){
-                 tooCloseStartOff = -2;
+                 tooCloseStartOff = -2*reflect;
                 }
-                startingPose = new Pose2d((-36 - tooCloseStartOff) - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
+                double newOff = -3*reflect;
+                startingPose = new Pose2d((-36 + tooCloseStartOff) - (3.5*reflect), -62 * reflect, Math.toRadians(90 * reflect));
                 drive = new MecanumDrive(hardwareMap, startingPose);
                 switch (LCRNUM) {
                     case -1:
-                        nextPose = new Pose2d(-47 + xOffset, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        nextPose = new Pose2d((-47 + xOffset)+newOff, -30 * reflect + yOffset, Math.toRadians(90 * reflect));
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineToConstantHeading(nextPose.position, nextPose.heading)
                                         .build());
                         break;
                     case 0:
-                        nextPose = new Pose2d(-36, -26 * reflect + yOffset, Math.toRadians(90 * reflect));
+                        nextPose = new Pose2d(-34, -25.5 * reflect + yOffset, Math.toRadians(90 * reflect));
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineToConstantHeading(nextPose.position, nextPose.heading)
@@ -175,10 +177,13 @@ public final class MainAuto extends LinearOpMode {
                     case 1:
                         tooClose = true;
                         tooCloseDrift = 2;
+                        if (color.equals(Alliance.BLUE)) {
+                            newOff2 = 2;
+                        }
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineTo(new Vector2d(-46, -36*reflect), Math.toRadians(0))
-                                        .lineToX(-25)
+                                        .lineToX(-25+newOff2)
                                         .lineToX(-43)
                                         .build());
                         Actions.runBlocking(
@@ -309,7 +314,11 @@ public final class MainAuto extends LinearOpMode {
         } else {
          //if((left < 0.25) && (mid < 0.25))
         lcr = Spike.RIGHT;
-    }
+        }
+        telemetry.addData("Left%", left);
+        telemetry.addData("Mid%", mid);
+        telemetry.addData("Choice", lcr.name());
+        telemetry.update();
     }
 
     private void gamepadSetValues() {
