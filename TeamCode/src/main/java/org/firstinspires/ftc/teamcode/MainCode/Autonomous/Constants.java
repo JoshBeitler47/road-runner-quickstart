@@ -15,7 +15,8 @@ public class Constants {
     }
     public enum Park{
         CORNER,
-        STAGE
+        STAGE,
+        NONE
     }
 
 }

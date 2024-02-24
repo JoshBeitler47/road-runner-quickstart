@@ -8,11 +8,13 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -24,7 +26,7 @@ import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Side;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Park;
 
 @Config
-@TeleOp(name="AAutonomous", group="Linear Opmode")
+@Autonomous(name="AAutonomous", group="Linear Opmode")
 
 //Intake Pixel goes closer to truss
 //Outtake pixel is on right side (left facing us)
@@ -44,6 +46,9 @@ public final class MainAuto extends LinearOpMode {
     DcMotorEx intake_elbow, outtake_elbow, hang_arm;
     DcMotor intake_grabber;
     Servo left_intake, right_intake, outtake_wrist, drone_launcher;
+
+    Gamepad currentGamePad = new Gamepad();
+    Gamepad previousGamePad = new Gamepad();
 
 
     //First PID
@@ -292,15 +297,17 @@ public final class MainAuto extends LinearOpMode {
         outtake_elbow.setPower(0);
 
         if (park.equals(Park.CORNER)){
-        Actions.runBlocking(
-                drive.actionBuilder(drive.pose)
-                        .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
-                        .build());
-        } else {
+            Actions.runBlocking(
+                    drive.actionBuilder(drive.pose)
+                            .splineToConstantHeading(new Vector2d(50, -64*reflect), 0)
+                            .build());
+        } else if (park.equals(Park.STAGE)){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
                             .splineToConstantHeading(new Vector2d(50, -12*reflect), 0)
                             .build());
+        } else {
+            //do nothing (PARK IN FRONT OF BACKBOARD)
         }
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE
@@ -334,27 +341,34 @@ public final class MainAuto extends LinearOpMode {
 
     private void gamepadSetValues() {
         while(!isStarted()){
-            if (gamepad1.right_bumper){
+            previousGamePad.copy(currentGamePad);
+            currentGamePad.copy(gamepad1);
+            if (currentGamePad.right_bumper && !previousGamePad.right_bumper) {
                 if(color == Alliance.RED){
                     color = Alliance.BLUE;
                 } else {
                     color = Alliance.RED;
                 }
             }
-            if (gamepad1.left_bumper){
-                if(park == Park.CORNER){
-                    park = Park.STAGE;
-                } else {
-                    park = Park.CORNER;
-                }
-            }
-            if (gamepad1.a){
+
+            if (currentGamePad.left_bumper && !previousGamePad.left_bumper) {
                 if(start == Side.AUDIENCE){
                     start = Side.BACKSTAGE;
                 } else {
                     start = Side.AUDIENCE;
                 }
             }
+
+            if (currentGamePad.a && !previousGamePad.a) {
+                if(park == Park.CORNER) {
+                    park = Park.STAGE;
+                } else if (park == Park.STAGE){
+                    park = Park.NONE;
+                } else {
+                    park = Park.CORNER;
+                }
+            }
+
             telemetry.addData("Color: ", color.name());
             telemetry.addData("Side: ", start.name());
             telemetry.addData("Parking: ", park.name());
