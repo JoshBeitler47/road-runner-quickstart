@@ -8,27 +8,27 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 public class VisionHandler {
-    ElementDetectionPipeline pipeline = new ElementDetectionPipeline();
+    public ElementDetectionPipeline pipeline = new ElementDetectionPipeline();
     OpenCvCamera camera;
     public boolean ready = false;
     public void init(HardwareMap hardwareMap){
 
         // I have no clue why this works
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        //camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        //camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"));
 
         camera.setPipeline(pipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             public void onOpened() {
-                ready = true;
+                camera.startStreaming(VisionParameters.resX, VisionParameters.resY, OpenCvCameraRotation.UPRIGHT);
             }
             public void onError(int errorCode) {}
         });
     }
 
     public void setLeft(){
-        pipeline.setPositionParameters(
+        pipeline.setPositionParametersLeft(
                 VisionParameters.leftStartX,
                 VisionParameters.leftStartY,
                 VisionParameters.leftEndX,
@@ -36,7 +36,7 @@ public class VisionHandler {
         );
     }
     public void setMiddle(){
-        pipeline.setPositionParameters(
+        pipeline.setPositionParametersRight(
                 VisionParameters.middleStartX,
                 VisionParameters.middleStartY,
                 VisionParameters.middleEndX,
@@ -67,7 +67,7 @@ public class VisionHandler {
 
         camera.startStreaming(VisionParameters.resX, VisionParameters.resY, OpenCvCameraRotation.UPRIGHT);
         Thread.sleep(VisionParameters.readTime);
-        double amt = pipeline.amount;
+        double amt = pipeline.amountLeft;
         camera.stopStreaming();
         return amt;
     }

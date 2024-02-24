@@ -10,7 +10,6 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -18,6 +17,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.ElementDetectionPipeline;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
 import org.firstinspires.ftc.teamcode.tuning.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
@@ -90,20 +90,40 @@ public final class MainAuto extends LinearOpMode {
         double tooCloseStartOff = 0;
         double newOff2 = 0;
         int LCRNUM = 0;
-        visionHandler = new VisionHandler();
-        ConfigDashboard();
+
         gamepadSetValues();
+
+        ConfigDashboard();
+
+        visionHandler = new VisionHandler();
+
         visionHandler.init(hardwareMap);
-        while (!visionHandler.ready && !isStopRequested())
+
+        ConfigVisionHandler();
+
+        while (!isStarted() && !isStopRequested())
         {
-            telemetry.addData("Camera","NOT READY");
+            telemetry.addData("Left%", visionHandler.pipeline.amountLeft);
+            telemetry.addData("Mid%", visionHandler.pipeline.amountRight);
+            telemetry.addData("Choice", visionHandler.pipeline.GetAnalysis());
             telemetry.update();
+            sleep(50);
         }
-        telemetry.addData("Camera","Ready");
-        telemetry.update();
+
         waitForStart();
-        lookForTeamElement();
-//Set Reflect and things
+        switch (visionHandler.pipeline.GetAnalysis()){
+            case LEFT:
+                lcr = Spike.LEFT;
+                break;
+            case CENTER:
+                lcr = Spike.CENTER;
+                break;
+            case RIGHT:
+                lcr = Spike.RIGHT;
+                break;
+        }
+
+        //Set Reflect and things
         {
             // Red is 1, Blue is -1
             if (color.equals(Alliance.RED)) {
@@ -311,36 +331,19 @@ public final class MainAuto extends LinearOpMode {
         }
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE
-    private void lookForTeamElement() throws InterruptedException {
+    private void ConfigVisionHandler() throws InterruptedException {
         if (color.equals(Alliance.RED)) {
             visionHandler.setRed();
         } else {
             visionHandler.setBlue();
         }
-        double left = 0, mid = 0;
-        this.resetRuntime();
-        while (this.getRuntime() < 3) {
             visionHandler.setLeft();
-            left = visionHandler.read();
             visionHandler.setMiddle();
-            mid = visionHandler.read();
-            if ((left > mid) && (left >= 0.12)) {
-                lcr = Spike.LEFT;
-            } else if ((mid > left) && (mid >= 0.12)) {
-                lcr = Spike.CENTER;
-            } else {
-                //if((left < 0.25) && (mid < 0.25))
-                lcr = Spike.RIGHT;
-            }
-            telemetry.addData("Left%", left);
-            telemetry.addData("Mid%", mid);
-            telemetry.addData("Choice", lcr.name());
-            telemetry.update();
-        }
     }
 
     private void gamepadSetValues() {
-        while(!isStarted()){
+        boolean doneSetting = false;
+        while (!doneSetting && !isStopRequested()){
             previousGamePad.copy(currentGamePad);
             currentGamePad.copy(gamepad1);
             if (currentGamePad.right_bumper && !previousGamePad.right_bumper) {
@@ -367,6 +370,10 @@ public final class MainAuto extends LinearOpMode {
                 } else {
                     park = Park.CORNER;
                 }
+            }
+
+            if (gamepad1.b){
+                doneSetting = true;
             }
 
             telemetry.addData("Color: ", color.name());

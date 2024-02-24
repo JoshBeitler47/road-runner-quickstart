@@ -10,8 +10,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
-import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionParameters;
 
 @TeleOp(name="Configure BoxTest", group="Linear Opmode")
 public class BoxTest extends LinearOpMode {
@@ -57,8 +55,8 @@ public class BoxTest extends LinearOpMode {
 
         waitForStart();
 
-        elementDetectionPipeline1.setPositionParameters(VisionParameters.leftStartX, VisionParameters.leftStartY, VisionParameters.leftEndX, VisionParameters.leftEndY);
-        elementDetectionPipeline2.setPositionParameters(VisionParameters.middleStartX, VisionParameters.middleStartY, VisionParameters.middleEndX, VisionParameters.middleEndY);
+        elementDetectionPipeline1.setPositionParametersLeft(VisionParameters.leftStartX, VisionParameters.leftStartY, VisionParameters.leftEndX, VisionParameters.leftEndY);
+        elementDetectionPipeline2.setPositionParametersLeft(VisionParameters.middleStartX, VisionParameters.middleStartY, VisionParameters.middleEndX, VisionParameters.middleEndY);
 
         while(opModeIsActive()){
             // Loading config with x, b, y, a
@@ -162,10 +160,10 @@ public class BoxTest extends LinearOpMode {
                         elementDetectionPipeline1.maxVal -= MODIFY_SPEED*gamepad1.right_stick_y;
                         break;
                     case POS:
-                        elementDetectionPipeline1.xStart += MOVE_SPEED*gamepad1.left_stick_x;
-                        elementDetectionPipeline1.yStart += MOVE_SPEED*gamepad1.left_stick_y;
-                        elementDetectionPipeline1.xEnd += MOVE_SPEED*gamepad1.right_stick_x;
-                        elementDetectionPipeline1.yEnd += MOVE_SPEED*gamepad1.right_stick_y;
+                        elementDetectionPipeline1.leftStartX += MOVE_SPEED*gamepad1.left_stick_x;
+                        elementDetectionPipeline1.leftStartY += MOVE_SPEED*gamepad1.left_stick_y;
+                        elementDetectionPipeline1.leftEndX += MOVE_SPEED*gamepad1.right_stick_x;
+                        elementDetectionPipeline1.leftEndY += MOVE_SPEED*gamepad1.right_stick_y;
                         break;
                     case HUE2:
                         elementDetectionPipeline2.minHue -= MODIFY_SPEED*gamepad1.left_stick_y;
@@ -180,10 +178,10 @@ public class BoxTest extends LinearOpMode {
                         elementDetectionPipeline2.maxVal -= MODIFY_SPEED*gamepad1.right_stick_y;
                         break;
                     case POS2:
-                        elementDetectionPipeline2.xStart += MOVE_SPEED*gamepad1.left_stick_x;
-                        elementDetectionPipeline2.yStart += MOVE_SPEED*gamepad1.left_stick_y;
-                        elementDetectionPipeline2.xEnd += MOVE_SPEED*gamepad1.right_stick_x;
-                        elementDetectionPipeline2.yEnd += MOVE_SPEED*gamepad1.right_stick_y;
+                        elementDetectionPipeline2.leftStartX += MOVE_SPEED*gamepad1.left_stick_x;
+                        elementDetectionPipeline2.leftStartY += MOVE_SPEED*gamepad1.left_stick_y;
+                        elementDetectionPipeline2.leftEndX += MOVE_SPEED*gamepad1.right_stick_x;
+                        elementDetectionPipeline2.leftEndY += MOVE_SPEED*gamepad1.right_stick_y;
                         break;
                 }
             }
@@ -191,8 +189,8 @@ public class BoxTest extends LinearOpMode {
             // Logging parameters to telemetry
             {
                 dashboardTelemetry.addData("Modifying parameter", parameterToModify);
-                dashboardTelemetry.addData("Amount", elementDetectionPipeline1.amount);
-                dashboardTelemetry.addData("Amount2", elementDetectionPipeline2.amount);
+                dashboardTelemetry.addData("Amount", elementDetectionPipeline1.amountLeft);
+                dashboardTelemetry.addData("Amount2", elementDetectionPipeline2.amountLeft);
                 dashboardTelemetry.addData("hueMin", elementDetectionPipeline1.minHue);
                 dashboardTelemetry.addData("hueMin2", elementDetectionPipeline2.minHue);
                 dashboardTelemetry.addData("hueMax", elementDetectionPipeline1.maxHue);
@@ -203,12 +201,12 @@ public class BoxTest extends LinearOpMode {
                 dashboardTelemetry.addData("valMin2", elementDetectionPipeline2.minVal);
                 dashboardTelemetry.addData("valMax", elementDetectionPipeline1.maxVal);
                 dashboardTelemetry.addData("valMax2", elementDetectionPipeline2.maxVal);
-                dashboardTelemetry.addData("startX", elementDetectionPipeline1.xStart);
-                dashboardTelemetry.addData("startX2", elementDetectionPipeline2.xStart);
-                dashboardTelemetry.addData("startY", elementDetectionPipeline1.yStart);
-                dashboardTelemetry.addData("startY2", elementDetectionPipeline2.yStart);
-                dashboardTelemetry.addData("endX", elementDetectionPipeline1.xEnd);
-                dashboardTelemetry.addData("endX2", elementDetectionPipeline2.xEnd);
+                dashboardTelemetry.addData("startX", elementDetectionPipeline1.leftStartX);
+                dashboardTelemetry.addData("startX2", elementDetectionPipeline2.leftStartX);
+                dashboardTelemetry.addData("startY", elementDetectionPipeline1.leftStartY);
+                dashboardTelemetry.addData("startY2", elementDetectionPipeline2.leftStartY);
+                dashboardTelemetry.addData("endX", elementDetectionPipeline1.leftEndX);
+                dashboardTelemetry.addData("endX2", elementDetectionPipeline2.leftEndX);
                 dashboardTelemetry.update();
             }
 

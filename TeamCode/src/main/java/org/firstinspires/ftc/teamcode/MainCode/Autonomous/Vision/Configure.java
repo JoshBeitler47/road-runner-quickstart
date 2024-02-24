@@ -76,7 +76,7 @@ public class Configure extends LinearOpMode {
                     );
                 }
                 if (gamepad1.y) {
-                    elementDetectionPipeline.setPositionParameters(
+                    elementDetectionPipeline.setPositionParametersLeft(
                             VisionParameters.middleStartX,
                             VisionParameters.middleStartY,
                             VisionParameters.middleEndX,
@@ -84,7 +84,7 @@ public class Configure extends LinearOpMode {
                     );
                 }
                 if (gamepad1.a && parameterToModify != Parameter.EYEDROPPER) {
-                    elementDetectionPipeline.setPositionParameters(
+                    elementDetectionPipeline.setPositionParametersLeft(
                             VisionParameters.leftStartX,
                             VisionParameters.leftStartY,
                             VisionParameters.leftEndX,
@@ -174,17 +174,17 @@ public class Configure extends LinearOpMode {
                         }
                         break;
                     case POS:
-                        elementDetectionPipeline.xStart += MOVE_SPEED*gamepad1.left_stick_x;
-                        elementDetectionPipeline.yStart += MOVE_SPEED*gamepad1.left_stick_y;
-                        elementDetectionPipeline.xEnd += MOVE_SPEED*gamepad1.right_stick_x;
-                        elementDetectionPipeline.yEnd += MOVE_SPEED*gamepad1.right_stick_y;
+                        elementDetectionPipeline.leftStartX += MOVE_SPEED*gamepad1.left_stick_x;
+                        elementDetectionPipeline.leftStartY += MOVE_SPEED*gamepad1.left_stick_y;
+                        elementDetectionPipeline.leftEndX += MOVE_SPEED*gamepad1.right_stick_x;
+                        elementDetectionPipeline.leftEndY += MOVE_SPEED*gamepad1.right_stick_y;
                         break;
                 }
             }
 
             // Logging parameters to telemetry
             {
-                dashboardTelemetry.addData("Amount", elementDetectionPipeline.amount);
+                dashboardTelemetry.addData("Amount", elementDetectionPipeline.amountLeft);
                 dashboardTelemetry.addData("Modifying parameter", parameterToModify);
                 dashboardTelemetry.addData("hueMin", elementDetectionPipeline.minHue);
                 dashboardTelemetry.addData("hueMax", elementDetectionPipeline.maxHue);
@@ -195,10 +195,10 @@ public class Configure extends LinearOpMode {
                 dashboardTelemetry.addData("readHue", elementDetectionPipeline.readHue);
                 dashboardTelemetry.addData("readSat", elementDetectionPipeline.readSat);
                 dashboardTelemetry.addData("readVal", elementDetectionPipeline.readVal);
-                dashboardTelemetry.addData("xStart", elementDetectionPipeline.xStart);
-                dashboardTelemetry.addData("xEnd", elementDetectionPipeline.xEnd);
-                dashboardTelemetry.addData("yStart", elementDetectionPipeline.yStart);
-                dashboardTelemetry.addData("yEnd", elementDetectionPipeline.yEnd);
+                dashboardTelemetry.addData("xStart", elementDetectionPipeline.leftStartX);
+                dashboardTelemetry.addData("xEnd", elementDetectionPipeline.leftEndX);
+                dashboardTelemetry.addData("yStart", elementDetectionPipeline.leftStartY);
+                dashboardTelemetry.addData("yEnd", elementDetectionPipeline.leftEndY);
                 dashboardTelemetry.update();
             }
 
