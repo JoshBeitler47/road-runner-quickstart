@@ -285,7 +285,7 @@ public final class MainAuto extends LinearOpMode {
                         .lineToXConstantHeading(44)
                         .build());
         outtake_wrist.setPosition(.38);
-        while (outtake_elbow.getCurrentPosition() > 10 && !isStopRequested())
+        while (outtake_elbow.getCurrentPosition() > 80 && !isStopRequested())
         {
             SetOuttakePIDTarget(0);
         }
@@ -310,12 +310,12 @@ public final class MainAuto extends LinearOpMode {
         } else {
             visionHandler.setBlue();
         }
-        visionHandler.setLeft();
-        visionHandler.setMiddle();
-        double left=0, mid = 0;
+        double left = 0, mid = 0;
         this.resetRuntime();
         while (this.getRuntime() < 3) {
+            visionHandler.setLeft();
             left = visionHandler.read();
+            visionHandler.setMiddle();
             mid = visionHandler.read();
             if ((left > mid) && (left >= 0.12)) {
                 lcr = Spike.LEFT;
@@ -329,7 +329,6 @@ public final class MainAuto extends LinearOpMode {
             telemetry.addData("Mid%", mid);
             telemetry.addData("Choice", lcr.name());
             telemetry.update();
-
         }
     }
 
