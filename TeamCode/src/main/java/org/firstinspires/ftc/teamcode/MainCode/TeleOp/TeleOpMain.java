@@ -130,7 +130,7 @@ public class TeleOpMain extends LinearOpMode {
                 case RESET_EXTEND:
                     if (runtime.seconds() >= .4) {
                         right_intake.setPosition(intakeServoStart);
-                        outtake_wrist.setPosition(outtakeServoDrop);
+                        //outtake_wrist.setPosition(outtakeServoDrop);
 
                         runtime.reset();
                         resetState = ResetState.RESET_FALL;
@@ -165,6 +165,8 @@ public class TeleOpMain extends LinearOpMode {
                     if (runtime.seconds() >= .1)
                     {
                         intake_elbow.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+                        intakeHover();
 
                         resetState = ResetState.RESET_START;
                     }
@@ -207,6 +209,10 @@ public class TeleOpMain extends LinearOpMode {
                         isSpintakeManual = false;
                         intake_grabber.setPower(-1);
                         runtime.reset();
+
+                        outtake_elbow.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                        outtake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
                         initState = InitState.INIT_RESET;
                     }
                     break;
@@ -217,11 +223,8 @@ public class TeleOpMain extends LinearOpMode {
                         isSpintakeManual = true;
                         startReset = true;
                         runtime.reset();
-                        outtake_elbow.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-                        outtake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-                        //SetOuttakePIDTarget(400);
-                        //outtake_wrist.setPosition(outtakeServoDrop);
+                        SetOuttakePIDTarget(400);
 
                         initState = InitState.INIT_END;
                     }
@@ -229,7 +232,7 @@ public class TeleOpMain extends LinearOpMode {
                 case INIT_END:
                     if (runtime.seconds() >= .4)
                     {
-                        outtake_wrist.setPosition(middlePosOuttake);
+                        outtake_wrist.setPosition(outtakeServoDrop);
                         runtime.reset();
                         initState = InitState.INIT_START;
                     }
@@ -313,18 +316,7 @@ public class TeleOpMain extends LinearOpMode {
             }
             if (currentGamepad1.y && !previousGamepad1.y)
             {
-                glideMode = false;
-                if (!yToggle)
-                {
-                    yToggle = true;
-                    target = yToggleVal;
-                }
-                else
-                {
-                    yToggle = false;
-                    target = 0;
-                    glideMode = true;
-                }
+                intakeHover();
             }
             //if (currentGamepad1.left_stick_button && currentGamepad1.right_stick_button) {
             //drone_launcher.setPosition();
@@ -511,8 +503,10 @@ public class TeleOpMain extends LinearOpMode {
     }
     private void ManualSlidePos()
     {
-            outtake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            outtake_elbow.setPower(-gamepad1.right_stick_y);
+            //outtake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            //outtake_elbow.setPower(-gamepad1.right_stick_y);
+
+            right_intake.setPosition(gamepad1.right_stick_y);
     }
 
     private void TelemetryData() {
@@ -569,6 +563,21 @@ public class TeleOpMain extends LinearOpMode {
         outtakeArmPower = pid2; // + ff2;
 
         outtake_elbow.setPower(outtakeArmPower);
+    }
+    private void intakeHover()
+    {
+        glideMode = false;
+        if (!yToggle)
+        {
+            yToggle = true;
+            target = yToggleVal;
+        }
+        else
+        {
+            yToggle = false;
+            target = 0;
+            glideMode = true;
+        }
     }
 }
 
