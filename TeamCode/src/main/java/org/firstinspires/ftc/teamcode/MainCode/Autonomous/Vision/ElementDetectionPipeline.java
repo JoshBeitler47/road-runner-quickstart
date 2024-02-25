@@ -162,6 +162,7 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
         }
 
         return image;
+        //Thread.sleep(50);
     }
     public Position GetAnalysis() {
         return position;

@@ -57,6 +57,7 @@ public final class MainAuto extends LinearOpMode {
     public static double f = -0.15;
     private final double ticks_in_degree = 144.0 / 180.0;
     public static double offset = -25;
+    public static double intakeServoAutoStart = 0.85;
     int armPos;
     double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower;
 
@@ -88,8 +89,8 @@ public final class MainAuto extends LinearOpMode {
         double outtakeOff2 = 0;
         double tooCloseDrift = 0;
         double tooCloseStartOff = 0;
-        double newOff2 = 0;
         int LCRNUM = 0;
+        double redOff = 0;
 
         gamepadSetValues();
 
@@ -209,13 +210,10 @@ public final class MainAuto extends LinearOpMode {
                     case 1:
                         tooClose = true;
                         tooCloseDrift = 2;
-                        if (color.equals(Alliance.BLUE)) {
-                            newOff2 = 2;
-                        }
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineTo(new Vector2d(-46, -36*reflect), Math.toRadians(0))
-                                        .lineToX(-25+newOff2)
+                                        .lineToX(-25)
                                         .lineToX(-43)
                                         .build());
                         Actions.runBlocking(
@@ -261,7 +259,9 @@ public final class MainAuto extends LinearOpMode {
                             .turnTo(Math.toRadians(180))
                             .build());
         }
-
+        if (color.equals(Alliance.RED)){
+            redOff = -1.5;
+        }
         switch (LCRNUM){
             case -1:
                 if (color.equals(Alliance.RED)){
@@ -271,13 +271,13 @@ public final class MainAuto extends LinearOpMode {
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, ((-30*reflect)+outtakeOffset)+outtakeOff2), 0)
+                                .splineToConstantHeading(new Vector2d(45, ((-30*reflect)+outtakeOffset)+outtakeOff2+redOff), 0)
                                 .build());
                 break;
             case 0:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset-1.5), 0)
+                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset-1.5+redOff), 0)
                                 .build());
                 break;
             case 1:
@@ -288,7 +288,7 @@ public final class MainAuto extends LinearOpMode {
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, ((-42*reflect)+outtakeOffset)+outtakeOff2+tooCloseDrift), Math.toRadians(0))
+                                .splineToConstantHeading(new Vector2d(45, ((-42*reflect)+outtakeOffset)+outtakeOff2+tooCloseDrift+redOff), Math.toRadians(0))
                                 .build());
                 break;
         }
@@ -439,6 +439,8 @@ public final class MainAuto extends LinearOpMode {
         right_intake = hardwareMap.get(Servo.class, "right_intake");
         outtake_wrist = hardwareMap.get(Servo.class, "outtake_wrist");
         drone_launcher = hardwareMap.get(Servo.class, "drone_launcher");
+
+        right_intake.setPosition(intakeServoAutoStart);
     }
     private void MotorInit(DcMotorEx motor) {
         motor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
