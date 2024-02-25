@@ -256,23 +256,23 @@ public class TeleOpMain extends LinearOpMode {
                 case FIX_START:
                     if (gamepad1.back) {
                         glideMode = false;
-                        target = 110;
+                        target = 85;
+                        right_intake.setPosition(intakeServoStart);
                         intake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                         runtime3.reset();
                         fixState = FixState.FIX_END;
                     }
                     break;
                 case FIX_END:
-                    if (runtime3.seconds() >= .5) {
+                    if (runtime3.seconds() >= .4) {
 
-                        right_intake.setPosition(intakeServoStart);
-                        intake_elbow.setPower(0);
+                        target = 121;
                         runtime3.reset();
                         fixState = FixState.FIX_RESET;
                     }
                     break;
                 case FIX_RESET:
-                    if (runtime3.seconds() >= .5)
+                    if (runtime3.seconds() >= .4)
                     {
                         intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                         target = 0;
