@@ -39,6 +39,8 @@ public class TeleOpMain extends LinearOpMode {
     public static int adjustSize = 5;
     IMU imu;
     private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime runtime2 = new ElapsedTime();
+    private ElapsedTime runtime3 = new ElapsedTime();
     public enum ResetState {
         RESET_START,
         RESET_EXTEND,
@@ -123,31 +125,31 @@ public class TeleOpMain extends LinearOpMode {
                     if (startReset || gamepad1.b) {
                         glideMode = false;
                         target = resetVar1;
-                        runtime.reset();
+                        runtime2.reset();
                         startReset = false;
                         resetState = ResetState.RESET_EXTEND;
                     }
                     break;
                 case RESET_EXTEND:
-                    if (runtime.seconds() >= .4) {
+                    if (runtime2.seconds() >= .4) {
                         right_intake.setPosition(intakeServoStart);
                         //outtake_wrist.setPosition(outtakeServoDrop);
 
-                        runtime.reset();
+                        runtime2.reset();
                         resetState = ResetState.RESET_FALL;
                     }
                     break;
                 case RESET_FALL:
-                    if (runtime.seconds() >= .4) {
-                        runtime.reset();
+                    if (runtime2.seconds() >= .4) {
+                        runtime2.reset();
                         target = resetVar2;
                         resetState = ResetState.RESET_END;
                     }
                     break;
                 case RESET_END:
-                    if (runtime.seconds() >= .6) {
+                    if (runtime2.seconds() >= .6) {
 
-                        runtime.reset();
+                        runtime2.reset();
                         glideMode = true;
                         target = 0;
 
@@ -155,15 +157,15 @@ public class TeleOpMain extends LinearOpMode {
                     }
                     break;
                 case RESET_RESET1:
-                    if (runtime.seconds() >= .4)
+                    if (runtime2.seconds() >= .4)
                     {
                         intake_elbow.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-                        runtime.reset();
+                        runtime2.reset();
                         resetState = ResetState.RESET_RESET2;
                     }
                     break;
                 case RESET_RESET2:
-                    if (runtime.seconds() >= .1)
+                    if (runtime2.seconds() >= .1)
                     {
                         intake_elbow.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -250,27 +252,27 @@ public class TeleOpMain extends LinearOpMode {
             }
 
             //Finite State Machine - Fix
-            /*switch (fixState) {
+            switch (fixState) {
                 case FIX_START:
-                    if (gamepad1.x && gamepad1.right_trigger > 0.25) {
+                    if (gamepad1.back) {
                         glideMode = false;
-                        target = 90;
+                        target = 110;
                         intake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                        runtime.reset();
+                        runtime3.reset();
                         fixState = FixState.FIX_END;
                     }
                     break;
                 case FIX_END:
-                    if (runtime.seconds() >= .5) {
+                    if (runtime3.seconds() >= .5) {
 
                         right_intake.setPosition(intakeServoStart);
                         intake_elbow.setPower(0);
-                        runtime.reset();
+                        runtime3.reset();
                         fixState = FixState.FIX_RESET;
                     }
                     break;
                 case FIX_RESET:
-                    if (runtime.seconds() >= .5)
+                    if (runtime3.seconds() >= .5)
                     {
                         intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                         target = 0;
@@ -281,7 +283,7 @@ public class TeleOpMain extends LinearOpMode {
                 default:
                     // should never be reached, as fixState should never be null
                     fixState = FixState.FIX_START;
-            }*/
+            }
 
             if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
                 AdjustDown();
@@ -296,9 +298,6 @@ public class TeleOpMain extends LinearOpMode {
             }
             if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
                 outtake_wrist.setPosition(outtakeServoTransfer);
-            }
-            if (currentGamepad1.back && !previousGamepad1.back) {
-                right_intake.setPosition(fullServoPos);
             }
             if (currentGamepad1.left_stick_button && !previousGamepad1.left_stick_button)
             {
@@ -337,7 +336,7 @@ public class TeleOpMain extends LinearOpMode {
                 else
                 {
                     slowMode = true;
-                    speedVar = .5;
+                    speedVar = .6;
                 }
             }
 
