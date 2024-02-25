@@ -8,12 +8,12 @@ public class VisionParameters {
     public static int resX = 320;
     public static int resY = 176;
 
-    public static int blueHueMax = 33;
-    public static int blueHueMin = -38;
-    public static int blueSatMax = 255;
-    public static int blueSatMin = 95;
-    public static int blueValMax = 215;
-    public static int blueValMin = 0;
+    public static int blueHueMax = 186;
+    public static int blueHueMin = -8;
+    public static int blueSatMax = 241;
+    public static int blueSatMin = 127;
+    public static int blueValMax = 263;
+    public static int blueValMin = 134;
 
     public static int redHueMax = 218;
     public static int redHueMin = 78;

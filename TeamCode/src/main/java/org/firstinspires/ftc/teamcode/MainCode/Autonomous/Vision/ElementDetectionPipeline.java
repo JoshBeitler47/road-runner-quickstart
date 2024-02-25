@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision;
 
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class ElementDetectionPipeline extends OpenCvPipeline {
 
@@ -21,6 +18,8 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
 
     int width = VisionParameters.resX;
     int height = VisionParameters.resY;
+
+    Position position = Position.CENTER;
 
     int minHue = 0;
     int maxHue = 255;
@@ -52,26 +51,42 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
         this.maxVal = maxVal;
     }
 
-    int xStart = 0;
-    int yStart = 0;
-    int xEnd = width;
-    int yEnd = height;
+    int leftStartX = 0;
+    int leftStartY = 0;
+    int leftEndX = 0;
+    int leftEndY = 0;
+    int rightStartX = 0;
+    int rightStartY = 0;
+    int rightEndX = 0;
+    int rightEndY = 0;
 
-    void setPositionParameters(
+    void setPositionParametersLeft(
             int xStart,
             int yStart,
             int xEnd,
             int yEnd
     ){
-        this.xStart = xStart;
-        this.xEnd = xEnd;
-        this.yStart = yStart;
-        this.yEnd = yEnd;
+        this.leftStartX = xStart;
+        this.leftEndX = xEnd;
+        this.leftStartY = yStart;
+        this.leftEndY = yEnd;
+    }
+    void setPositionParametersRight(
+            int xStart,
+            int yStart,
+            int xEnd,
+            int yEnd
+    ){
+        this.rightStartX = xStart;
+        this.rightEndX = xEnd;
+        this.rightStartY = yStart;
+        this.rightEndY = yEnd;
     }
 
 
 
-    double amount;
+    public double amountLeft;
+    public double amountRight;
 
 
     @Override
@@ -85,25 +100,45 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
         readSat = (int) readPix[1];
         readVal = (int) readPix[2];
 
-        Mat convertedSubmat = converted.submat(yStart, yEnd, xStart, xEnd);
-        Mat thresh = convertedSubmat.clone();
+        Mat convertedSubmatLeft = converted.submat(leftStartY, leftEndY, leftStartX, leftEndX);
+        Mat threshLeft = convertedSubmatLeft.clone();
 
-        Core.inRange(thresh, new Scalar(minHue, minSat, minVal), new Scalar(maxHue, maxSat, maxVal), thresh);
-        amount = Core.sumElems(thresh).val[0]/255./(xEnd - xStart)/(yEnd - yStart);
+        Mat convertedSubmatRight = converted.submat(rightStartY, rightEndY, rightStartX, rightEndX);
+        Mat threshRight = convertedSubmatRight.clone();
+
+        Core.inRange(threshLeft, new Scalar(minHue, minSat, minVal), new Scalar(maxHue, maxSat, maxVal), threshLeft);
+        amountLeft = Core.sumElems(threshLeft).val[0]/255./(leftEndX - leftStartX)/(leftEndY - leftStartY);
+
+        Core.inRange(threshRight, new Scalar(minHue, minSat, minVal), new Scalar(maxHue, maxSat, maxVal), threshRight);
+        amountRight = Core.sumElems(threshRight).val[0]/255./(rightEndX - rightStartX)/(rightEndY - rightStartY);
 
 
-        Mat thresh4 = new Mat();
-        Imgproc.cvtColor(thresh, thresh4, Imgproc.COLOR_GRAY2BGRA);
-        Mat submat = image.submat(yStart, yEnd, xStart, xEnd);
-        Core.add(submat, thresh4, submat);
+        Mat thresh4Left = new Mat();
+        Imgproc.cvtColor(threshLeft, thresh4Left, Imgproc.COLOR_GRAY2BGRA);
+        Mat submatLeft = image.submat(leftStartY, leftEndY, leftStartX, leftEndX);
+        Core.add(submatLeft, thresh4Left, submatLeft);
+
+        Mat thresh4Right = new Mat();
+        Imgproc.cvtColor(threshRight, thresh4Right, Imgproc.COLOR_GRAY2BGRA);
+        Mat submatRight = image.submat(rightStartY, rightEndY, rightStartX, rightEndX);
+        Core.add(submatRight, thresh4Right, submatRight);
 
         Imgproc.rectangle(
                 image,
-                new Point(xStart, yStart),
-                new Point(xEnd, yEnd),
+                new Point(leftStartX, leftStartY),
+                new Point(leftEndX, leftEndY),
                 new Scalar(255, 255, 255),
                 3
         );
+
+        Imgproc.rectangle(
+                image,
+                new Point(rightStartX, rightStartY),
+                new Point(rightEndX, rightEndY),
+                new Scalar(255, 255, 255),
+                3
+        );
+
         Imgproc.circle(
                 image,
                 new Point(readX, readY),
@@ -112,9 +147,24 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
                 2
         );
 
-        thresh.release();
-        thresh4.release();
+        threshLeft.release();
+        thresh4Left.release();
+
+        threshRight.release();
+        thresh4Right.release();
+
+        if ((amountLeft > amountRight) && (amountLeft >= 0.12)) {
+            position = Position.LEFT;
+        } else if ((amountRight > amountLeft) && (amountRight >= 0.12)) {
+            position = Position.CENTER;
+        } else {
+            position = Position.RIGHT;
+        }
 
         return image;
+        //Thread.sleep(50);
+    }
+    public Position GetAnalysis() {
+        return position;
     }
 }

@@ -10,7 +10,6 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -18,6 +17,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.ElementDetectionPipeline;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Vision.VisionHandler;
 import org.firstinspires.ftc.teamcode.tuning.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.Autonomous.Constants.Spike;
@@ -57,6 +57,7 @@ public final class MainAuto extends LinearOpMode {
     public static double f = -0.15;
     private final double ticks_in_degree = 144.0 / 180.0;
     public static double offset = -25;
+    public static double intakeServoAutoStart = 0.85;
     int armPos;
     double pid, targetArmAngle, ff, currentArmAngle, intakeArmPower;
 
@@ -88,22 +89,42 @@ public final class MainAuto extends LinearOpMode {
         double outtakeOff2 = 0;
         double tooCloseDrift = 0;
         double tooCloseStartOff = 0;
-        double newOff2 = 0;
         int LCRNUM = 0;
-        visionHandler = new VisionHandler();
-        ConfigDashboard();
+        double redOff = 0;
+
         gamepadSetValues();
+
+        ConfigDashboard();
+
+        visionHandler = new VisionHandler();
+
         visionHandler.init(hardwareMap);
-        while (!visionHandler.ready && !isStopRequested())
+
+        ConfigVisionHandler();
+
+        while (!isStarted() && !isStopRequested())
         {
-            telemetry.addData("Camera","NOT READY");
+            telemetry.addData("Left%", visionHandler.pipeline.amountLeft);
+            telemetry.addData("Mid%", visionHandler.pipeline.amountRight);
+            telemetry.addData("Choice", visionHandler.pipeline.GetAnalysis());
             telemetry.update();
+            sleep(50);
         }
-        telemetry.addData("Camera","Ready");
-        telemetry.update();
+
         waitForStart();
-        lookForTeamElement();
-//Set Reflect and things
+        switch (visionHandler.pipeline.GetAnalysis()){
+            case LEFT:
+                lcr = Spike.LEFT;
+                break;
+            case CENTER:
+                lcr = Spike.CENTER;
+                break;
+            case RIGHT:
+                lcr = Spike.RIGHT;
+                break;
+        }
+
+        //Set Reflect and things
         {
             // Red is 1, Blue is -1
             if (color.equals(Alliance.RED)) {
@@ -189,13 +210,10 @@ public final class MainAuto extends LinearOpMode {
                     case 1:
                         tooClose = true;
                         tooCloseDrift = 2;
-                        if (color.equals(Alliance.BLUE)) {
-                            newOff2 = 2;
-                        }
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
                                         .splineTo(new Vector2d(-46, -36*reflect), Math.toRadians(0))
-                                        .lineToX(-25+newOff2)
+                                        .lineToX(-25)
                                         .lineToX(-43)
                                         .build());
                         Actions.runBlocking(
@@ -241,7 +259,9 @@ public final class MainAuto extends LinearOpMode {
                             .turnTo(Math.toRadians(180))
                             .build());
         }
-
+        if (color.equals(Alliance.RED)){
+            redOff = -1.5;
+        }
         switch (LCRNUM){
             case -1:
                 if (color.equals(Alliance.RED)){
@@ -251,13 +271,13 @@ public final class MainAuto extends LinearOpMode {
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, ((-30*reflect)+outtakeOffset)+outtakeOff2), 0)
+                                .splineToConstantHeading(new Vector2d(45, ((-30*reflect)+outtakeOffset)+outtakeOff2+redOff), 0)
                                 .build());
                 break;
             case 0:
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset-1.5), 0)
+                                .splineToConstantHeading(new Vector2d(45, (-36*reflect)+outtakeOffset-1.5+redOff), 0)
                                 .build());
                 break;
             case 1:
@@ -268,7 +288,7 @@ public final class MainAuto extends LinearOpMode {
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
-                                .splineToConstantHeading(new Vector2d(45, ((-42*reflect)+outtakeOffset)+outtakeOff2+tooCloseDrift), Math.toRadians(0))
+                                .splineToConstantHeading(new Vector2d(45, ((-42*reflect)+outtakeOffset)+outtakeOff2+tooCloseDrift+redOff), Math.toRadians(0))
                                 .build());
                 break;
         }
@@ -311,36 +331,19 @@ public final class MainAuto extends LinearOpMode {
         }
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE
-    private void lookForTeamElement() throws InterruptedException {
+    private void ConfigVisionHandler() throws InterruptedException {
         if (color.equals(Alliance.RED)) {
             visionHandler.setRed();
         } else {
             visionHandler.setBlue();
         }
-        double left = 0, mid = 0;
-        this.resetRuntime();
-        while (this.getRuntime() < 3) {
             visionHandler.setLeft();
-            left = visionHandler.read();
             visionHandler.setMiddle();
-            mid = visionHandler.read();
-            if ((left > mid) && (left >= 0.12)) {
-                lcr = Spike.LEFT;
-            } else if ((mid > left) && (mid >= 0.12)) {
-                lcr = Spike.CENTER;
-            } else {
-                //if((left < 0.25) && (mid < 0.25))
-                lcr = Spike.RIGHT;
-            }
-            telemetry.addData("Left%", left);
-            telemetry.addData("Mid%", mid);
-            telemetry.addData("Choice", lcr.name());
-            telemetry.update();
-        }
     }
 
     private void gamepadSetValues() {
-        while(!isStarted()){
+        boolean doneSetting = false;
+        while (!doneSetting && !isStopRequested()){
             previousGamePad.copy(currentGamePad);
             currentGamePad.copy(gamepad1);
             if (currentGamePad.right_bumper && !previousGamePad.right_bumper) {
@@ -367,6 +370,10 @@ public final class MainAuto extends LinearOpMode {
                 } else {
                     park = Park.CORNER;
                 }
+            }
+
+            if (gamepad1.b){
+                doneSetting = true;
             }
 
             telemetry.addData("Color: ", color.name());
@@ -432,6 +439,8 @@ public final class MainAuto extends LinearOpMode {
         right_intake = hardwareMap.get(Servo.class, "right_intake");
         outtake_wrist = hardwareMap.get(Servo.class, "outtake_wrist");
         drone_launcher = hardwareMap.get(Servo.class, "drone_launcher");
+
+        right_intake.setPosition(intakeServoAutoStart);
     }
     private void MotorInit(DcMotorEx motor) {
         motor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
