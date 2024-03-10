@@ -123,6 +123,23 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
         Mat submatRight = image.submat(rightStartY, rightEndY, rightStartX, rightEndX);
         Core.add(submatRight, thresh4Right, submatRight);
 
+        converted.release();
+
+        threshLeft.release();
+        thresh4Left.release();
+
+        threshRight.release();
+        thresh4Right.release();
+
+        if ((amountLeft > amountRight) && (amountLeft >= 0.12)) {
+            position = Position.LEFT;
+        } else if ((amountRight > amountLeft) && (amountRight >= 0.12)) {
+            position = Position.CENTER;
+        } else {
+            position = Position.RIGHT;
+        }
+
+
         Imgproc.rectangle(
                 image,
                 new Point(leftStartX, leftStartY),
@@ -147,22 +164,7 @@ public class ElementDetectionPipeline extends OpenCvPipeline {
                 2
         );
 
-        threshLeft.release();
-        thresh4Left.release();
-
-        threshRight.release();
-        thresh4Right.release();
-
-        if ((amountLeft > amountRight) && (amountLeft >= 0.12)) {
-            position = Position.LEFT;
-        } else if ((amountRight > amountLeft) && (amountRight >= 0.12)) {
-            position = Position.CENTER;
-        } else {
-            position = Position.RIGHT;
-        }
-
         return image;
-        //Thread.sleep(50);
     }
     public Position GetAnalysis() {
         return position;

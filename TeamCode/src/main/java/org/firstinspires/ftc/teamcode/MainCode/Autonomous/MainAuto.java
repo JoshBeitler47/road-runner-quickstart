@@ -91,6 +91,8 @@ public final class MainAuto extends LinearOpMode {
         double tooCloseStartOff = 0;
         int LCRNUM = 0;
         double redOff = 0;
+        double newDrift = 0;
+        double noPark = 0;
 
         gamepadSetValues();
 
@@ -131,6 +133,9 @@ public final class MainAuto extends LinearOpMode {
                 reflect = 1;
             } else {
                 reflect = -1;
+            }
+            if (park.equals(Park.NONE)){
+                noPark = 4;
             }
             yOffset *= reflect;
             switch (lcr) {
@@ -210,10 +215,15 @@ public final class MainAuto extends LinearOpMode {
                     case 1:
                         tooClose = true;
                         tooCloseDrift = 2;
+                        if (color.equals(Alliance.BLUE)){
+                            newDrift = 4;
+                        } else {
+                            newDrift = -0.75;
+                        }
                         Actions.runBlocking(
                                 drive.actionBuilder(drive.pose)
-                                        .splineTo(new Vector2d(-46, -36*reflect), Math.toRadians(0))
-                                        .lineToX(-25)
+                                        .splineTo(new Vector2d(-46, -38*reflect), Math.toRadians(0))
+                                        .lineToX(-24+newDrift)
                                         .lineToX(-43)
                                         .build());
                         Actions.runBlocking(
@@ -282,9 +292,9 @@ public final class MainAuto extends LinearOpMode {
                 break;
             case 1:
                 if (color.equals(Alliance.BLUE)){
-                    outtakeOff2 = -3;
+                    outtakeOff2 = 2;
                 } else {
-                    outtakeOff2 = -2;
+                    outtakeOff2 = -4;
                 }
                 Actions.runBlocking(
                         drive.actionBuilder(drive.pose)
@@ -293,9 +303,9 @@ public final class MainAuto extends LinearOpMode {
                 break;
         }
         outtake_wrist.setPosition(.9);
-        while (outtake_elbow.getCurrentPosition() < 700 && !isStopRequested())
+        while (outtake_elbow.getCurrentPosition() < 1075 && !isStopRequested())
         {
-            SetOuttakePIDTarget(900);
+            SetOuttakePIDTarget(1275);
         }
         outtake_elbow.setPower(0);
         outtake_elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -307,7 +317,7 @@ public final class MainAuto extends LinearOpMode {
         Actions.runBlocking(
                 drive.actionBuilder(drive.pose)
                         .turnTo(Math.toRadians(180))
-                        .lineToXConstantHeading(44)
+                        .lineToXConstantHeading(44+noPark)
                         .build());
         outtake_wrist.setPosition(.38);
         while (outtake_elbow.getCurrentPosition() > 80 && !isStopRequested())
@@ -326,8 +336,6 @@ public final class MainAuto extends LinearOpMode {
                     drive.actionBuilder(drive.pose)
                             .splineToConstantHeading(new Vector2d(50, -12*reflect), 0)
                             .build());
-        } else {
-            //do nothing (PARK IN FRONT OF BACKBOARD)
         }
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONE

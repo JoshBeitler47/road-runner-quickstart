@@ -361,6 +361,13 @@ public class TeleOpMain extends LinearOpMode {
 
             intakeArmPower = pid + ff;
 
+            if (gamepad1.right_trigger>0.55)
+            {
+                intake_elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                target = 0;
+                intake_elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
+
             if (!glideMode)
             {
                 intake_elbow.setPower(intakeArmPower);
