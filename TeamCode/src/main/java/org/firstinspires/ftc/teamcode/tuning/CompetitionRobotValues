@@ -1,0 +1,48 @@
+MECANUM DRIVE
+
+inPerTick = 0.00296665;
+lateralInPerTick = 0.002152468924069517;
+trackWidthTicks = 4760.319919435442;
+
+kS = 0.8849388546082868;
+kV =  0.000583459660303903;
+kA = 0.000007;
+
+maxWheelVel = 35; //15
+minProfileAccel = -10;
+maxProfileAccel = 20; //10
+
+
+maxAngVel = Math.PI; // shared with path
+maxAngAccel = Math.PI;
+
+
+axialGain = 1;
+lateralGain = 1;
+headingGain = 1; // shared with turn
+
+axialVelGain = 2;
+lateralVelGain = 0.6;
+headingVelGain = 0.5; // shared with turn
+
+leftFront = hardwareMap.get(DcMotorEx.class, "leftfront_drive");
+leftBack = hardwareMap.get(DcMotorEx.class, "leftback_drive");
+rightBack = hardwareMap.get(DcMotorEx.class, "rightback_drive");
+rightFront = hardwareMap.get(DcMotorEx.class, "rightfront_drive");
+
+leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+
+PARAMS.logoFacingDirection, PARAMS.usbFacingDirection));
+
+THREE DEAD WHEEL LOCALIZER
+
+par0YTicks = -1534.028994502563; // y position of the first parallel encoder (in tick units)
+par1YTicks = 1147.601765831616; // y position of the second parallel encoder (in tick units)
+perpXTicks = -1074.8826657154207; // x position of the perpendicular encoder (in tick units)
+
+par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "leftback_drive")));
+par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "leftfront_drive")));
+perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "rightfront_drive")));
+
+perp.setDirection(DcMotorSimple.Direction.REVERSE);
