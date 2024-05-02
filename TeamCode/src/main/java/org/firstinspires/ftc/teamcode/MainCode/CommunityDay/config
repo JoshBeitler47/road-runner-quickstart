@@ -2,3 +2,8 @@
 % 1 - leftfront (perp)
 % 2 - rightfront
 % 3 - rightback (par 0 - left deadwheel)
+
+% 0 - rightback (par 1)
+% 1 - leftback (perp)
+% 2 - rightfront
+% 3 - leftfront (par 0)

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.MainCode.CommunityDay;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -13,14 +14,14 @@ import org.firstinspires.ftc.teamcode.tuning.ThreeDeadWheelLocalizer;
 public final class CDMain extends LinearOpMode {
     public MecanumDrive drive;
     public Pose2d currentPose;
-    public int sq = 24;
+    public int sq = 12;
     public int neg = 1;
     public double currentHeading = 90;
 
     public void runOpMode() throws InterruptedException {
-        double xStart = -60;
+        double xStart = 60;
         double yStart = -60;
-        double headingStart = currentHeading;
+        double headingStart = Math.toRadians(90);
 
         currentPose = new Pose2d(xStart, yStart, headingStart);
         drive = new MecanumDrive(hardwareMap, currentPose);
@@ -35,8 +36,8 @@ public final class CDMain extends LinearOpMode {
         //turnRight();
         //turnLeft();
 
-
-
+        driveForward(2);
+        turnRight();
 
 
 //////
@@ -88,25 +89,25 @@ public final class CDMain extends LinearOpMode {
         if (currentHeading == 0){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(270)
+                            .turnTo(Math.toRadians(270))
                             .build());
             currentHeading = 270;
         } else if (currentHeading == 90){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(0)
+                            .turnTo(Math.toRadians(0))
                             .build());
             currentHeading = 0;
         } else if (currentHeading == 180){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(90)
+                            .turnTo(Math.toRadians(90))
                             .build());
             currentHeading = 90;
         } else if (currentHeading == 270){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(180)
+                            .turnTo(Math.toRadians(180))
                             .build());
             currentHeading = 180;
         }
@@ -116,25 +117,25 @@ public final class CDMain extends LinearOpMode {
         if (currentHeading == 0){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(90)
+                            .turnTo(Math.toRadians(90))
                             .build());
             currentHeading = 90;
         } else if (currentHeading == 90){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(180)
+                            .turnTo(Math.toRadians(180))
                             .build());
             currentHeading = 180;
         } else if (currentHeading == 180){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(270)
+                            .turnTo(Math.toRadians(270))
                             .build());
             currentHeading = 270;
         } else if (currentHeading == 270){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .turnTo(0)
+                            .turnTo(Math.toRadians(0))
                             .build());
             currentHeading = 0;
         }
