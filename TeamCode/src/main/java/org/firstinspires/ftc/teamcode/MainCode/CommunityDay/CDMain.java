@@ -38,6 +38,8 @@ public final class CDMain extends LinearOpMode {
 
         driveForward(2);
         turnRight();
+        turnLeft();
+        driveForward(2);
 
 
 //////
