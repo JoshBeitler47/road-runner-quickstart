@@ -16,11 +16,12 @@ public final class CDMain extends LinearOpMode {
     public int sq = 24;
     public int neg = 1;
     public double currentHeading = 90;
+    public boolean next = true;
 
     public void runOpMode() throws InterruptedException {
-        double xStart = -60;
+        double xStart = 60;
         double yStart = -60;
-        double headingStart = currentHeading;
+        double headingStart = 90;
 
         currentPose = new Pose2d(xStart, yStart, headingStart);
         drive = new MecanumDrive(hardwareMap, currentPose);
@@ -35,9 +36,10 @@ public final class CDMain extends LinearOpMode {
         //turnRight();
         //turnLeft();
 
-
-
-
+        Actions.runBlocking(
+                drive.actionBuilder(drive.pose)
+                        .lineToYConstantHeading(0)
+                        .build());
 
 
 
@@ -45,6 +47,8 @@ public final class CDMain extends LinearOpMode {
     }
 
     public void driveForward(int amnt) {
+        waitUntilTrue(next);
+        next = false;
         if ((currentHeading == 90) || (currentHeading == 270)) {
             if (currentHeading == 270) {
                 neg = -1;
@@ -64,8 +68,11 @@ public final class CDMain extends LinearOpMode {
                             .build());
             neg = 1;
         }
+        next = true;
     }
     public void driveBackward(int amnt) {
+        waitUntilTrue(next);
+        next = false;
         if ((currentHeading == 90) || (currentHeading == 270)) {
             if (currentHeading == 90) {
                 neg = -1;
@@ -85,8 +92,11 @@ public final class CDMain extends LinearOpMode {
                             .build());
             neg = 1;
         }
+        next = true;
     }
     public void turnRight() {
+        waitUntilTrue(next);
+        next = false;
         if (currentHeading == 0){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
@@ -112,9 +122,11 @@ public final class CDMain extends LinearOpMode {
                             .build());
             currentHeading = 180;
         }
-
+        next = true;
     }
     public void turnLeft(){
+        waitUntilTrue(next);
+        next = false;
         if (currentHeading == 0){
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
@@ -140,6 +152,12 @@ public final class CDMain extends LinearOpMode {
                             .build());
             currentHeading = 0;
         }
+        next = true;
+    }
 
+    public void waitUntilTrue(boolean condition){
+        while (!condition){
+            sleep(100);
+        }
     }
 }
