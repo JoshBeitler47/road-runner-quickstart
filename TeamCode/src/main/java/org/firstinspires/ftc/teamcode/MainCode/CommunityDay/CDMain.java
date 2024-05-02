@@ -38,8 +38,10 @@ public final class CDMain extends LinearOpMode {
 
         driveForward(2);
         turnRight();
+        driveForward(1);
         turnLeft();
         driveForward(2);
+        driveBackward(2);
 
 
 //////
@@ -52,7 +54,7 @@ public final class CDMain extends LinearOpMode {
             }
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .lineToYConstantHeading(currentPose.position.y + (sq * amnt * neg))
+                            .lineToYConstantHeading(drive.pose.position.y + (sq * amnt * neg))
                             .build());
             neg = 1;
         } else if ((currentHeading == 180) || (currentHeading == 0)) {
@@ -61,7 +63,7 @@ public final class CDMain extends LinearOpMode {
             }
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .lineToXConstantHeading(currentPose.position.x + (sq * amnt * neg))
+                            .lineToXConstantHeading(drive.pose.position.x + (sq * amnt * neg))
                             .build());
             neg = 1;
         }
@@ -73,7 +75,7 @@ public final class CDMain extends LinearOpMode {
             }
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .lineToYConstantHeading(currentPose.position.y + (sq * amnt * neg))
+                            .lineToYConstantHeading(drive.pose.position.y + (sq * amnt * neg))
                             .build());
             neg = 1;
         } else if ((currentHeading == 180) || (currentHeading == 0)) {
@@ -82,7 +84,7 @@ public final class CDMain extends LinearOpMode {
             }
             Actions.runBlocking(
                     drive.actionBuilder(drive.pose)
-                            .lineToXConstantHeading(currentPose.position.x + (sq * amnt * neg))
+                            .lineToXConstantHeading(drive.pose.position.x + (sq * amnt * neg))
                             .build());
             neg = 1;
         }
